@@ -36,13 +36,40 @@ const dataJsContent = fs.readFileSync(path.join(__dirname, 'js/data.js'), 'utf8'
 let EIGHT_WEEK_PROGRAM = null;
 let WARMUP_PROTOCOL = null;
 let COOLDOWN_PROTOCOL = null;
-let EXERCISE_LIBRARY = null;
+let EXERCISES = null;
+let DATA = null;
 
 try {
-  // Use eval in a controlled way to extract the data
-  eval(dataJsContent);
+  // Wrap the data.js content in a function and execute it
+  const wrappedContent = `
+    (function() {
+      ${dataJsContent}
+      return {
+        EXERCISES,
+        WARMUP_PROTOCOL,
+        COOLDOWN_PROTOCOL,
+        EIGHT_WEEK_PROGRAM,
+        DATA
+      };
+    })()
+  `;
+
+  // Execute and get the returned data
+  const loadedData = eval(wrappedContent);
+
+  EXERCISES = loadedData.EXERCISES;
+  WARMUP_PROTOCOL = loadedData.WARMUP_PROTOCOL;
+  COOLDOWN_PROTOCOL = loadedData.COOLDOWN_PROTOCOL;
+  EIGHT_WEEK_PROGRAM = loadedData.EIGHT_WEEK_PROGRAM;
+  DATA = loadedData.DATA;
+
+  if (!EIGHT_WEEK_PROGRAM) {
+    console.error(colorize('Error: EIGHT_WEEK_PROGRAM not found in data.js', 'red'));
+    process.exit(1);
+  }
 } catch (error) {
   console.error(colorize('Error parsing data.js:', 'red'), error.message);
+  console.error(error.stack);
   process.exit(1);
 }
 
