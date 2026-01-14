@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Tennis Conditioning Pro</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header id="header">
+            <button id="backBtn" class="icon-btn" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <button id="homeBtn" class="icon-btn home-btn" style="display: none;" title="Home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+            </button>
+            <div class="header-title-group">
+                <span class="app-logo">🎾</span>
+                <h1 id="headerTitle">Tennis Conditioning Pro</h1>
+            </div>
+            <div class="header-buttons">
+                <button id="infoBtn" class="icon-btn" title="Theme Info">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                </button>
+                <button id="themeBtn" class="icon-btn" title="Change Theme">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <line x1="12" y1="1" x2="12" y2="3"/>
+                        <line x1="12" y1="21" x2="12" y2="23"/>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                        <line x1="1" y1="12" x2="3" y2="12"/>
+                        <line x1="21" y1="12" x2="23" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="mainContent">
+            <!-- Breadcrumb Navigation -->
+            <div id="breadcrumb" class="breadcrumb" style="display: none;">
+                <a href="#" class="breadcrumb-item" id="breadcrumbPlan"></a>
+                <span class="breadcrumb-separator">›</span>
+                <a href="#" class="breadcrumb-item" id="breadcrumbWeek"></a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-item breadcrumb-current" id="breadcrumbDay"></span>
+            </div>
+
+            <!-- Plan Library View (Default) -->
+            <div id="planLibraryView" class="view active">
+                <div class="welcome-section">
+                    <div class="tennis-ball-icon">🎾</div>
+                    <h2>Ready to Train?</h2>
+                    <p>Choose a workout plan to get started</p>
+                </div>
+
+                <div class="plans-grid">
+                    <div class="plan-card featured" data-plan="8-week">
+                        <div class="plan-icon">💪</div>
+                        <div class="plan-card-content">
+                            <h3>8-Week Program</h3>
+                            <p>Complete conditioning journey</p>
+                            <div class="plan-meta">
+                                <span>8 weeks • 4 days/week</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card" data-plan="warmup">
+                        <div class="plan-icon">🔥</div>
+                        <div class="plan-card-content">
+                            <h3>Warm-Up Protocol</h3>
+                            <p>8-10 minute preparation routine</p>
+                            <div class="plan-meta">
+                                <span>10 min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card" data-plan="cooldown">
+                        <div class="plan-icon">❄️</div>
+                        <div class="plan-card-content">
+                            <h3>Cool-Down Protocol</h3>
+                            <p>5-7 minute recovery routine</p>
+                            <div class="plan-meta">
+                                <span>7 min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card" data-plan="exercises">
+                        <div class="plan-icon">📚</div>
+                        <div class="plan-card-content">
+                            <h3>Exercise Library</h3>
+                            <p>Browse all 150+ exercises</p>
+                            <div class="plan-meta">
+                                <span>Reference</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card custom" data-plan="custom">
+                        <div class="plan-icon">✨</div>
+                        <div class="plan-card-content">
+                            <h3>Custom Workout</h3>
+                            <p>Create your own plan</p>
+                            <div class="plan-meta">
+                                <span>Build</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Week Selector View -->
+            <div id="weekSelectorView" class="view">
+                <div class="section-header">
+                    <h2>8-Week Program</h2>
+                    <p>Select a week to continue</p>
+                </div>
+                <div id="weekGrid" class="week-grid"></div>
+            </div>
+
+            <!-- Day Selector View -->
+            <div id="daySelectorView" class="view">
+                <div class="section-header">
+                    <h2 id="weekTitle">Week 1</h2>
+                    <p>Choose your training day</p>
+                </div>
+                <div id="dayGrid" class="day-grid"></div>
+            </div>
+
+            <!-- Workout Session View -->
+            <div id="workoutView" class="view">
+                <div class="workout-header">
+                    <div class="workout-header-left">
+                        <h2 id="workoutTitle">Monday - Speed & Agility</h2>
+                        <div class="workout-meta">
+                            <span id="workoutDuration">35 min</span>
+                            <span id="workoutProgress">0/12 exercises</span>
+                        </div>
+                    </div>
+                    <div class="workout-timer">
+                        <div class="timer-display">
+                            <span class="timer-icon">⏱️</span>
+                            <span id="workoutTimer">0:00</span>
+                        </div>
+                        <div class="timer-controls">
+                            <button id="playPauseBtn" class="timer-btn" title="Play">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </button>
+                            <button id="resetTimerBtn" class="timer-btn" title="Reset">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                    <path d="M3 3v5h5"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="session-controls">
+                    <div class="session-left">
+                        <button id="resetSessionBtn" class="secondary-btn">Reset Session</button>
+                        <div class="session-info">
+                            <span id="sessionStarted">Started: Today</span>
+                        </div>
+                    </div>
+                    <div class="section-toggle-controls" id="sectionToggleControls" style="display: none;">
+                        <button id="collapseAllBtn" class="toggle-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="18 15 12 9 6 15"/>
+                            </svg>
+                            Collapse All
+                        </button>
+                        <button id="expandAllBtn" class="toggle-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                            Expand All
+                        </button>
+                    </div>
+                </div>
+
+                <div id="exerciseList" class="exercise-list">
+                    <!-- Exercise cards will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Exercise Library View -->
+            <div id="exerciseLibraryView" class="view">
+                <div class="section-header">
+                    <h2>Exercise Library</h2>
+                    <input type="search" id="exerciseSearch" placeholder="Search exercises..." class="search-input">
+                </div>
+
+                <div class="filter-chips">
+                    <button class="chip active" data-category="all">All</button>
+                    <button class="chip" data-category="warmup">Warm-up</button>
+                    <button class="chip" data-category="core">Core</button>
+                    <button class="chip" data-category="lower">Lower Body</button>
+                    <button class="chip" data-category="upper">Upper Body</button>
+                    <button class="chip" data-category="plyo">Plyometrics</button>
+                    <button class="chip" data-category="agility">Agility</button>
+                </div>
+
+                <div id="exerciseGrid" class="exercise-grid">
+                    <!-- Exercise reference cards will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Custom Workout Builder View -->
+            <div id="customWorkoutView" class="view">
+                <div class="section-header">
+                    <h2>Custom Workout</h2>
+                    <p>Build your personalized training session</p>
+                </div>
+                <div class="custom-builder">
+                    <button id="addExerciseBtn" class="primary-btn">+ Add Exercise</button>
+                    <div id="customExerciseList" class="exercise-list">
+                        <div class="empty-state">
+                            <p>No exercises added yet</p>
+                            <p class="hint">Tap "Add Exercise" to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (Optional for future use) -->
+        <nav id="bottomNav" style="display: none;">
+            <button class="nav-btn active" data-view="home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span>Home</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modal for Exercise Details -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="confetti-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
