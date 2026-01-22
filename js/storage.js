@@ -10,6 +10,22 @@ const Storage = {
     SETTINGS: 'tennis_conditioning_settings'
   },
 
+  // Error handler callback
+  errorHandler: null,
+
+  // Set error handler
+  setErrorHandler(handler) {
+    this.errorHandler = handler;
+  },
+
+  // Handle errors
+  handleError(error, context = '') {
+    console.error(`Storage error ${context}:`, error);
+    if (this.errorHandler) {
+      this.errorHandler(error, context);
+    }
+  },
+
   // Initialize storage with default values if not exists
   init() {
     if (!this.get(this.KEYS.PROGRESS)) {
@@ -38,7 +54,7 @@ const Storage = {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      this.handleError(error, `reading key "${key}"`);
       return null;
     }
   },
@@ -48,7 +64,11 @@ const Storage = {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.error('Error writing to localStorage:', error);
+      this.handleError(error, `writing key "${key}"`);
+      // Check for quota exceeded
+      if (error.name === 'QuotaExceededError') {
+        this.handleError(new Error('Storage quota exceeded. Please clear some data.'), 'quota');
+      }
       return false;
     }
   },
@@ -58,7 +78,7 @@ const Storage = {
       localStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.error('Error removing from localStorage:', error);
+      this.handleError(error, `removing key "${key}"`);
       return false;
     }
   },
@@ -69,7 +89,7 @@ const Storage = {
       this.init();
       return true;
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      this.handleError(error, 'clearing storage');
       return false;
     }
   },

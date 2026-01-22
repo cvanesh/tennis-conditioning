@@ -2,9 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional 8-week tennis conditioning program with workout tracking, exercise library, and personalized training plans">
+    <meta name="theme-color" content="#2E7D32">
+
+    <!-- Apple iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tennis Pro">
+
+    <!-- Security headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
     <title>Tennis Conditioning Pro</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -13,43 +26,28 @@
     <div id="app">
         <!-- Header -->
         <header id="header">
-            <button id="backBtn" class="icon-btn" style="display: none;">
+            <button id="backBtn" class="icon-btn" style="display: none;" aria-label="Go back">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
             </button>
-            <button id="homeBtn" class="icon-btn home-btn" style="display: none;" title="Home">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
-                </svg>
-            </button>
-            <div class="header-title-group">
+            <div class="header-title-group" id="headerTitleGroup">
                 <span class="app-logo">🎾</span>
                 <h1 id="headerTitle">Tennis Conditioning Pro</h1>
             </div>
-            <div class="header-buttons">
-                <button id="infoBtn" class="icon-btn" title="Theme Info">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="16" x2="12" y2="12"/>
-                        <line x1="12" y1="8" x2="12.01" y2="8"/>
-                    </svg>
-                </button>
-                <button id="themeBtn" class="icon-btn" title="Change Theme">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5"/>
-                        <line x1="12" y1="1" x2="12" y2="3"/>
-                        <line x1="12" y1="21" x2="12" y2="23"/>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                        <line x1="1" y1="12" x2="3" y2="12"/>
-                        <line x1="21" y1="12" x2="23" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                    </svg>
-                </button>
-            </div>
+            <button id="themeBtn" class="icon-btn" title="Change Theme" aria-label="Change color theme">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/>
+                    <line x1="12" y1="1" x2="12" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="23"/>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                    <line x1="1" y1="12" x2="3" y2="12"/>
+                    <line x1="21" y1="12" x2="23" y2="12"/>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+            </button>
         </header>
 
         <!-- Main Content Area -->
@@ -83,6 +81,17 @@
                         </div>
                     </div>
 
+                    <div class="plan-card" data-plan="match-day">
+                        <div class="plan-icon">🎾</div>
+                        <div class="plan-card-content">
+                            <h3>Match Day Protocol</h3>
+                            <p>Complete tournament day checklist</p>
+                            <div class="plan-meta">
+                                <span>6 Protocols • Pre-match to recovery</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="plan-card" data-plan="warmup">
                         <div class="plan-icon">🔥</div>
                         <div class="plan-card-content">
@@ -101,6 +110,17 @@
                             <p>5-7 minute recovery routine</p>
                             <div class="plan-meta">
                                 <span>7 min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="plan-card" data-plan="nutrition">
+                        <div class="plan-icon">🍎</div>
+                        <div class="plan-card-content">
+                            <h3>Nutrition Guide</h3>
+                            <p>Complete meal plans & nutrition guidelines</p>
+                            <div class="plan-meta">
+                                <span>10 Categories • 50+ Meals</span>
                             </div>
                         </div>
                     </div>
@@ -136,6 +156,24 @@
                     <p>Select a week to continue</p>
                 </div>
                 <div id="weekGrid" class="week-grid"></div>
+            </div>
+
+            <!-- Match Day Protocol Selector View -->
+            <div id="matchDayProtocolView" class="view">
+                <div class="section-header">
+                    <h2>Match Day Protocol</h2>
+                    <p>Select a protocol to view</p>
+                </div>
+                <div id="protocolGrid" class="week-grid"></div>
+            </div>
+
+            <!-- Nutrition Plan Category Selector View -->
+            <div id="nutritionPlanView" class="view">
+                <div class="section-header">
+                    <h2>Nutrition Guide</h2>
+                    <p>Select a category to explore</p>
+                </div>
+                <div id="nutritionGrid" class="week-grid"></div>
             </div>
 
             <!-- Day Selector View -->
@@ -178,28 +216,6 @@
                     </div>
                 </div>
 
-                <div class="session-controls">
-                    <div class="session-left">
-                        <button id="resetSessionBtn" class="secondary-btn">Reset Session</button>
-                        <div class="session-info">
-                            <span id="sessionStarted">Started: Today</span>
-                        </div>
-                    </div>
-                    <div class="section-toggle-controls" id="sectionToggleControls" style="display: none;">
-                        <button id="collapseAllBtn" class="toggle-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="18 15 12 9 6 15"/>
-                            </svg>
-                            Collapse All
-                        </button>
-                        <button id="expandAllBtn" class="toggle-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 12 15 18 9"/>
-                            </svg>
-                            Expand All
-                        </button>
-                    </div>
-                </div>
 
                 <div id="exerciseList" class="exercise-list">
                     <!-- Exercise cards will be dynamically inserted here -->

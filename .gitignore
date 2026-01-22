@@ -126,3 +126,18 @@ build/
 # Cache
 .cache/
 .parcel-cache/
+
+# Project-specific temporary files
+validation-report.txt
+validation-detailed.txt
+generation-report.txt
+missing-exercises-code.txt
+all-missing-exercises.txt
+missing-exercise-ids.txt
+*SUMMARY.md
+PROFESSIONAL_STANDARDS.md
+FIXES_SUMMARY.md
+COMPLETION_SUMMARY.md
+IMPROVEMENTS_SUMMARY.md
+VALIDATION_SUMMARY.md
+WEEKS_3-4_SUMMARY.md

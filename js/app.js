@@ -11,7 +11,8 @@ const App = {
     exercises: [],
     timerManager: new TimerManager(),
     workoutStartTime: null,
-    workoutTimerInterval: null
+    workoutTimerInterval: null,
+    eventListeners: [] // Track listeners for cleanup
   },
 
   // DOM Elements cache
@@ -19,7 +20,11 @@ const App = {
 
   // Initialize the application
   init() {
-    console.log('Initializing Tennis Conditioning Pro...');
+    // Setup global error handlers first
+    this.setupGlobalErrorHandlers();
+
+    // Register service worker for PWA support
+    this.registerServiceWorker();
 
     // Cache DOM elements
     this.cacheElements();
@@ -35,8 +40,75 @@ const App = {
 
     // Show initial view
     this.showView('planLibrary');
+  },
 
-    console.log('App initialized successfully!');
+  // Register Service Worker for PWA functionality
+  registerServiceWorker() {
+    // Only register service worker on http/https protocols
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            // Check for updates periodically
+            setInterval(() => {
+              registration.update();
+            }, 60 * 60 * 1000); // Check every hour
+          })
+          .catch((error) => {
+            console.error('[App] Service Worker registration failed:', error);
+          });
+      });
+
+      // Listen for service worker updates
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('[App] New service worker activated');
+      });
+    }
+  },
+
+  // Setup global error handlers
+  setupGlobalErrorHandlers() {
+    // Global error handler
+    window.addEventListener('error', (event) => {
+      console.error('Global error:', event.error);
+      this.showToast('An error occurred. Please refresh the page.', 'error');
+      // Optionally log to external service
+      return false; // Allow default handling
+    });
+
+    // Unhandled promise rejection handler
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      this.showToast('An unexpected error occurred.', 'error');
+      event.preventDefault();
+    });
+
+    // LocalStorage error wrapper
+    Storage.setErrorHandler((error) => {
+      console.error('Storage error:', error);
+      this.showToast('Unable to save progress. Check storage availability.', 'error');
+    });
+  },
+
+  // Add event listener with tracking for cleanup
+  addTrackedListener(element, event, handler, options) {
+    if (!element) {
+      console.warn('Attempted to add listener to null element');
+      return;
+    }
+
+    element.addEventListener(event, handler, options);
+    this.state.eventListeners.push({ element, event, handler, options });
+  },
+
+  // Clean up event listeners
+  cleanupEventListeners() {
+    this.state.eventListeners.forEach(({ element, event, handler, options }) => {
+      if (element && element.removeEventListener) {
+        element.removeEventListener(event, handler, options);
+      }
+    });
+    this.state.eventListeners = [];
   },
 
   // Cache frequently used DOM elements
@@ -45,10 +117,9 @@ const App = {
       // Header
       header: document.getElementById('header'),
       headerTitle: document.getElementById('headerTitle'),
+      headerTitleGroup: document.getElementById('headerTitleGroup'),
       backBtn: document.getElementById('backBtn'),
-      homeBtn: document.getElementById('homeBtn'),
       themeBtn: document.getElementById('themeBtn'),
-      infoBtn: document.getElementById('infoBtn'),
 
       // Breadcrumb
       breadcrumb: document.getElementById('breadcrumb'),
@@ -72,11 +143,6 @@ const App = {
       playPauseBtn: document.getElementById('playPauseBtn'),
       resetTimerBtn: document.getElementById('resetTimerBtn'),
       exerciseList: document.getElementById('exerciseList'),
-      resetSessionBtn: document.getElementById('resetSessionBtn'),
-      sessionStarted: document.getElementById('sessionStarted'),
-      sectionToggleControls: document.getElementById('sectionToggleControls'),
-      collapseAllBtn: document.getElementById('collapseAllBtn'),
-      expandAllBtn: document.getElementById('expandAllBtn'),
 
       // Week/Day grids
       weekGrid: document.getElementById('weekGrid'),
@@ -101,14 +167,12 @@ const App = {
     // Back button
     this.elements.backBtn.addEventListener('click', () => this.handleBack());
 
-    // Home button
-    this.elements.homeBtn.addEventListener('click', () => this.goHome());
+    // Header title - click to go home
+    this.elements.headerTitleGroup.addEventListener('click', () => this.goHome());
+    this.elements.headerTitleGroup.style.cursor = 'pointer';
 
     // Theme button
     this.elements.themeBtn.addEventListener('click', () => this.cycleTheme());
-
-    // Info button
-    this.elements.infoBtn.addEventListener('click', () => this.showThemeInfo());
 
     // Plan cards
     document.querySelectorAll('.plan-card').forEach(card => {
@@ -118,20 +182,6 @@ const App = {
       });
     });
 
-    // Reset session button
-    if (this.elements.resetSessionBtn) {
-      this.elements.resetSessionBtn.addEventListener('click', () => {
-        this.handleResetSession();
-      });
-    }
-
-    // Collapse/Expand all buttons
-    if (this.elements.collapseAllBtn) {
-      this.elements.collapseAllBtn.addEventListener('click', () => this.collapseAllSections());
-    }
-    if (this.elements.expandAllBtn) {
-      this.elements.expandAllBtn.addEventListener('click', () => this.expandAllSections());
-    }
 
     // Timer controls
     if (this.elements.playPauseBtn) {
@@ -180,6 +230,16 @@ const App = {
   // ===================================
 
   showView(viewName) {
+    // Stop workout timer if leaving workout view
+    if (this.state.currentView === 'workout' && viewName !== 'workout') {
+      this.stopWorkoutTimer();
+    }
+
+    // Stop all timers in timer manager
+    if (this.state.timerManager) {
+      this.state.timerManager.stopAll();
+    }
+
     // Hide all views
     document.querySelectorAll('.view').forEach(view => {
       view.classList.remove('active');
@@ -198,16 +258,13 @@ const App = {
 
   updateHeader(viewName) {
     const backBtn = this.elements.backBtn;
-    const homeBtn = this.elements.homeBtn;
     const title = this.elements.headerTitle;
 
-    // Show/hide back and home buttons
+    // Show/hide back button
     if (viewName === 'planLibrary') {
       backBtn.style.display = 'none';
-      homeBtn.style.display = 'none';
     } else {
       backBtn.style.display = 'flex';
-      homeBtn.style.display = 'flex';
     }
 
     // Keep title constant across all views
@@ -239,6 +296,8 @@ const App = {
     // Set plan name
     const planNames = {
       '8-week': '8-Week Program',
+      'match-day': 'Match Day Protocol',
+      'nutrition': 'Nutrition Guide',
       'warmup': 'Warm-Up Protocol',
       'cooldown': 'Cool-Down Protocol',
       'exercises': 'Exercise Library',
@@ -252,6 +311,10 @@ const App = {
       e.preventDefault();
       if (plan === '8-week') {
         this.show8WeekProgram();
+      } else if (plan === 'match-day') {
+        this.showMatchDayProtocol();
+      } else if (plan === 'nutrition') {
+        this.showNutritionPlan();
       }
     };
 
@@ -294,6 +357,8 @@ const App = {
 
     switch (currentView) {
       case 'weekSelector':
+      case 'matchDayProtocol':
+      case 'nutritionPlan':
       case 'exerciseLibrary':
       case 'customWorkout':
         this.showView('planLibrary');
@@ -304,6 +369,10 @@ const App = {
       case 'workout':
         if (this.state.currentPlan === '8-week') {
           this.showView('daySelector');
+        } else if (this.state.currentPlan === 'match-day') {
+          this.showMatchDayProtocol();
+        } else if (this.state.currentPlan === 'nutrition') {
+          this.showNutritionPlan();
         } else {
           this.showView('planLibrary');
         }
@@ -323,6 +392,12 @@ const App = {
     switch (plan) {
       case '8-week':
         this.show8WeekProgram();
+        break;
+      case 'match-day':
+        this.showMatchDayProtocol();
+        break;
+      case 'nutrition':
+        this.showNutritionPlan();
         break;
       case 'warmup':
         this.showWorkout(WARMUP_PROTOCOL);
@@ -425,16 +500,342 @@ const App = {
   },
 
   // ===================================
+  // MATCH DAY PROTOCOL
+  // ===================================
+
+  showMatchDayProtocol() {
+    this.renderProtocolSelector();
+    this.showView('matchDayProtocol');
+    this.updateBreadcrumb('match-day');
+  },
+
+  renderProtocolSelector() {
+    const grid = document.getElementById('protocolGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    // Get protocols from data
+    const protocols = MATCH_DAY_PROTOCOL.protocols || [];
+
+    protocols.forEach((protocol, index) => {
+      const card = document.createElement('div');
+      card.className = 'week-card'; // Reuse week-card styling
+
+      card.innerHTML = `
+        <div class="week-number">${protocol.icon || '📋'}</div>
+        <div class="week-phase">${protocol.name}</div>
+        <div class="protocol-subtitle" style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 4px;">${protocol.subtitle || ''}</div>
+      `;
+
+      card.addEventListener('click', () => {
+        this.loadProtocolChecklist(protocol);
+      });
+
+      grid.appendChild(card);
+    });
+  },
+
+  loadProtocolChecklist(protocol) {
+    // Start session for tracking checklist progress
+    Storage.startSession('match-day', protocol.id, null);
+
+    this.state.currentPlan = 'match-day';
+    this.state.currentProtocol = protocol;
+    this.state.exercises = []; // Clear exercises
+    this.state.sections = protocol.sections || [];
+
+    this.elements.workoutTitle.textContent = protocol.name;
+    this.elements.workoutDuration.textContent = protocol.subtitle || '';
+
+    // Render checklist
+    this.renderChecklistSections();
+
+    this.showView('workout');
+    this.updateBreadcrumb('match-day', null, protocol.name);
+  },
+
+  renderChecklistSections() {
+    const list = this.elements.exerciseList;
+    this.cleanupEventListeners();
+    list.innerHTML = '';
+
+    if (!this.state.sections || this.state.sections.length === 0) {
+      list.innerHTML = '<div class="empty-state"><p>No checklist items available</p></div>';
+      return;
+    }
+
+    let itemIndex = 0;
+
+    this.state.sections.forEach((section, sectionIdx) => {
+      const sectionContainer = document.createElement('div');
+      sectionContainer.className = 'section-container';
+
+      // Create section header
+      const sectionHeader = document.createElement('div');
+      sectionHeader.className = sectionIdx === 0 ? 'section-header-card' : 'section-header-card collapsed';
+
+      const itemCount = section.items?.length || 0;
+
+      sectionHeader.innerHTML = `
+        <div class="section-header-top">
+          <h3>${section.name}</h3>
+          <span class="section-progress">0/${itemCount}</span>
+          <svg class="section-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+        ${section.subtitle ? `<p class="section-meta">${section.subtitle}</p>` : ''}
+      `;
+
+      // Toggle handler
+      const toggleHandler = () => {
+        const isCurrentlyCollapsed = sectionHeader.classList.contains('collapsed');
+
+        // Close all other sections (accordion behavior)
+        document.querySelectorAll('.section-header-card').forEach(header => {
+          if (header !== sectionHeader) {
+            header.classList.add('collapsed');
+            const otherItems = header.parentElement.querySelector('.section-checklist-items');
+            if (otherItems) otherItems.classList.add('hidden');
+          }
+        });
+
+        // Toggle this section
+        if (isCurrentlyCollapsed) {
+          sectionHeader.classList.remove('collapsed');
+          itemsContainer.classList.remove('hidden');
+        } else {
+          sectionHeader.classList.add('collapsed');
+          itemsContainer.classList.add('hidden');
+        }
+      };
+      this.addTrackedListener(sectionHeader, 'click', toggleHandler);
+
+      sectionContainer.appendChild(sectionHeader);
+
+      // Create items container
+      const itemsContainer = document.createElement('div');
+      itemsContainer.className = sectionIdx === 0 ? 'section-checklist-items' : 'section-checklist-items hidden';
+
+      // Add checklist items
+      if (section.items && section.items.length > 0) {
+        section.items.forEach((item) => {
+          const itemCard = this.createChecklistItem(item, itemIndex);
+          itemsContainer.appendChild(itemCard);
+          itemIndex++;
+        });
+      }
+
+      sectionContainer.appendChild(itemsContainer);
+      list.appendChild(sectionContainer);
+    });
+
+    // Update section progress counters
+    this.updateChecklistSectionProgress();
+  },
+
+  createChecklistItem(item, index) {
+    const card = document.createElement('div');
+    card.className = 'exercise-card checklist-item';
+    card.dataset.index = index;
+
+    const isChecked = Storage.isExerciseCompleted(index);
+    if (isChecked) {
+      card.classList.add('completed');
+    }
+
+    card.innerHTML = `
+      <div class="exercise-header">
+        <div class="exercise-checkbox ${isChecked ? 'checked' : ''}" data-index="${index}"></div>
+        <div class="exercise-info">
+          <div class="exercise-name">${item.text}</div>
+          ${item.details ? `<div class="exercise-details" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">${item.details}</div>` : ''}
+        </div>
+      </div>
+    `;
+
+    // Add checkbox click handler
+    const checkbox = card.querySelector('.exercise-checkbox');
+    if (checkbox) {
+      const checkboxHandler = (e) => {
+        e.stopPropagation();
+        this.toggleChecklistItem(index);
+      };
+      this.addTrackedListener(checkbox, 'click', checkboxHandler);
+    }
+
+    return card;
+  },
+
+  toggleChecklistItem(index) {
+    Storage.toggleExercise(index);
+
+    // Update UI
+    const card = document.querySelector(`[data-index="${index}"]`);
+    const checkbox = card?.querySelector('.exercise-checkbox');
+
+    if (checkbox) {
+      const isChecked = Storage.isExerciseCompleted(index);
+      checkbox.classList.toggle('checked', isChecked);
+      card.classList.toggle('completed', isChecked);
+    }
+
+    // Update section progress
+    this.updateChecklistSectionProgress();
+
+    // Show celebration if item checked
+    if (Storage.isExerciseCompleted(index)) {
+      this.showToast('Item checked! ✓');
+    }
+  },
+
+  updateChecklistSectionProgress() {
+    document.querySelectorAll('.section-header-card').forEach((header, sectionIdx) => {
+      const section = this.state.sections[sectionIdx];
+      if (!section || !section.items) return;
+
+      const totalItems = section.items.length;
+      let completedItems = 0;
+
+      // Count completed items in this section
+      const itemsContainer = header.parentElement.querySelector('.section-checklist-items');
+      if (itemsContainer) {
+        itemsContainer.querySelectorAll('.checklist-item.completed').forEach(() => {
+          completedItems++;
+        });
+      }
+
+      // Update progress display
+      const progressSpan = header.querySelector('.section-progress');
+      if (progressSpan) {
+        progressSpan.textContent = `${completedItems}/${totalItems}`;
+      }
+    });
+  },
+
+  // ===================================
+  // NUTRITION PLAN
+  // ===================================
+
+  showNutritionPlan() {
+    this.renderNutritionCategories();
+    this.showView('nutritionPlan');
+    this.updateBreadcrumb('nutrition');
+  },
+
+  renderNutritionCategories() {
+    const grid = document.getElementById('nutritionGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+    const categories = NUTRITION_PLAN.categories || [];
+
+    categories.forEach((category, index) => {
+      const card = document.createElement('div');
+      card.className = 'week-card';
+      card.innerHTML = `
+        <div class="week-number">${category.icon || '📋'}</div>
+        <div class="week-phase">${category.name}</div>
+        <div class="protocol-subtitle">${category.subtitle || ''}</div>
+      `;
+
+      card.addEventListener('click', () => {
+        this.loadNutritionCategory(category);
+      });
+
+      grid.appendChild(card);
+    });
+  },
+
+  loadNutritionCategory(category) {
+    this.state.currentPlan = 'nutrition';
+    this.state.currentCategory = category;
+    this.state.sections = category.sections || [];
+
+    this.elements.workoutTitle.textContent = category.name;
+    this.elements.workoutDuration.textContent = category.subtitle || '';
+    this.elements.workoutProgress.style.display = 'none'; // Hide progress for info view
+
+    // Render nutrition items
+    this.renderNutritionItems();
+
+    this.showView('workout');
+    this.updateBreadcrumb('nutrition', null, category.name);
+  },
+
+  renderNutritionItems() {
+    const list = this.elements.exerciseList;
+    list.innerHTML = '';
+
+    const category = this.state.currentCategory;
+    if (!category || !category.sections) return;
+
+    category.sections.forEach((section, sectionIndex) => {
+      // Create section header
+      const sectionHeader = document.createElement('div');
+      sectionHeader.className = 'section-checklist-header';
+      sectionHeader.innerHTML = `
+        <h3 class="section-checklist-title">${section.name}</h3>
+      `;
+
+      // Create section container
+      const sectionContainer = document.createElement('div');
+      sectionContainer.className = 'section-checklist-items';
+      sectionContainer.style.display = 'block'; // Always expanded for nutrition
+
+      // Add items
+      section.items.forEach((item, itemIndex) => {
+        const itemCard = this.createNutritionItem(item, `${sectionIndex}-${itemIndex}`);
+        sectionContainer.appendChild(itemCard);
+      });
+
+      list.appendChild(sectionHeader);
+      list.appendChild(sectionContainer);
+    });
+  },
+
+  createNutritionItem(item, id) {
+    const card = document.createElement('div');
+    card.className = 'exercise-card nutrition-item';
+    card.dataset.id = id;
+
+    let macrosHTML = '';
+    if (item.macros) {
+      macrosHTML = `
+        <div class="nutrition-macros">
+          <span>${item.macros.calories || 0} cal</span>
+          <span>${item.macros.carbs || 0}g carbs</span>
+          <span>${item.macros.protein || 0}g protein</span>
+          <span>${item.macros.fat || 0}g fat</span>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="exercise-header">
+        <div class="exercise-info">
+          <div class="exercise-name">${item.title}</div>
+          ${item.content ? `<div class="exercise-details nutrition-content">${item.content}</div>` : ''}
+          ${macrosHTML}
+        </div>
+      </div>
+    `;
+
+    return card;
+  },
+
+  // ===================================
   // WORKOUT SESSION
   // ===================================
 
   loadWorkout(week, day, dayData) {
-    // Start new session
-    Storage.startSession('8-week', `week${week}`, day);
-
     // Set state
     this.state.currentWeek = week;
     this.state.currentDay = day;
+
+    // Start session immediately to track progress
+    Storage.startSession('8-week', `week${week}`, day);
 
     // Flatten exercises from sections if present, otherwise use exercises array
     if (dayData.sections) {
@@ -474,12 +875,6 @@ const App = {
     // Update section progress
     this.updateSectionProgress();
 
-    // Update session info
-    const session = Storage.getCurrentSession();
-    if (session) {
-      this.elements.sessionStarted.textContent = `Started: ${Storage.formatDate(session.startedAt)}`;
-    }
-
     // Initialize timer display (but don't auto-start)
     this.updateWorkoutTimer();
     this.updateTimerButton(false);
@@ -489,8 +884,8 @@ const App = {
   },
 
   showWorkout(protocol) {
-    // Start session for warmup or cooldown
-    Storage.startSession(protocol.id);
+    // Start session immediately to track progress
+    Storage.startSession(protocol.id, null, null);
 
     // Flatten exercises from sections with section metadata
     this.state.exercises = [];
@@ -515,18 +910,16 @@ const App = {
     // Render exercises with sections
     this.renderExercises();
 
-    // Update session info
-    const session = Storage.getCurrentSession();
-    if (session) {
-      this.elements.sessionStarted.textContent = `Started: ${Storage.formatDate(session.startedAt)}`;
-    }
-
     this.showView('workout');
     this.updateBreadcrumb(protocol.id);
   },
 
   renderExercises() {
     const list = this.elements.exerciseList;
+
+    // Clean up existing event listeners before clearing content
+    this.cleanupEventListeners();
+
     list.innerHTML = '';
 
     if (this.state.exercises.length === 0) {
@@ -538,11 +931,6 @@ const App = {
     if (this.state.sections) {
       let exerciseIndex = 0;
 
-      // Show toggle controls
-      if (this.elements.sectionToggleControls) {
-        this.elements.sectionToggleControls.style.display = 'flex';
-      }
-
       this.state.sections.forEach((section, sectionIdx) => {
         // Create section container
         const sectionContainer = document.createElement('div');
@@ -550,7 +938,8 @@ const App = {
 
         // Create section header
         const sectionHeader = document.createElement('div');
-        sectionHeader.className = 'section-header-card collapsed'; // Start collapsed
+        // Only expand first section, collapse the rest
+        sectionHeader.className = sectionIdx === 0 ? 'section-header-card' : 'section-header-card collapsed';
         sectionHeader.dataset.sectionIndex = sectionIdx;
 
         let sectionMeta = `${section.timeRange} (${section.duration} min)`;
@@ -573,8 +962,9 @@ const App = {
           <div class="section-header-top">
             <h3>${section.name}</h3>
             <span class="section-progress">0/${exerciseCount}</span>
-            <span class="section-exercise-count">${exerciseCount}</span>
-            <span class="section-collapse-icon">▼</span>
+            <svg class="section-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
           </div>
           <p class="section-meta">${sectionMeta}</p>
         `;
@@ -582,18 +972,39 @@ const App = {
         // Store exercise indices for progress tracking
         sectionHeader.setAttribute('data-exercises', exerciseIndices.join(','));
 
-        // Add click handler to toggle collapse
-        sectionHeader.addEventListener('click', () => {
+        // Add click handler to toggle collapse - TRACKED
+        const toggleHandler = () => {
           const exercisesContainer = sectionContainer.querySelector('.section-exercises');
-          sectionHeader.classList.toggle('collapsed');
-          exercisesContainer.classList.toggle('hidden');
-        });
+          const isCurrentlyCollapsed = sectionHeader.classList.contains('collapsed');
+
+          // Close all other sections (accordion behavior)
+          document.querySelectorAll('.section-header-card').forEach(header => {
+            if (header !== sectionHeader) {
+              header.classList.add('collapsed');
+              const otherContainer = header.parentElement;
+              const otherExercises = otherContainer.querySelector('.section-exercises');
+              if (otherExercises) {
+                otherExercises.classList.add('hidden');
+              }
+            }
+          });
+
+          // Toggle this section
+          if (isCurrentlyCollapsed) {
+            sectionHeader.classList.remove('collapsed');
+            exercisesContainer.classList.remove('hidden');
+          } else {
+            sectionHeader.classList.add('collapsed');
+            exercisesContainer.classList.add('hidden');
+          }
+        };
+        this.addTrackedListener(sectionHeader, 'click', toggleHandler);
 
         sectionContainer.appendChild(sectionHeader);
 
-        // Create exercises container (start hidden)
+        // Create exercises container (visible only for first section)
         const exercisesContainer = document.createElement('div');
-        exercisesContainer.className = 'section-exercises hidden';
+        exercisesContainer.className = sectionIdx === 0 ? 'section-exercises' : 'section-exercises hidden';
 
         // Add exercises in this section
         section.exercises.forEach(() => {
@@ -607,16 +1018,23 @@ const App = {
         list.appendChild(sectionContainer);
       });
     } else {
-      // No sections, hide toggle controls
-      if (this.elements.sectionToggleControls) {
-        this.elements.sectionToggleControls.style.display = 'none';
-      }
-
       // Just render exercises
       this.state.exercises.forEach((exerciseData, index) => {
         const card = this.createExerciseCard(exerciseData, index);
         list.appendChild(card);
       });
+    }
+
+    // Auto-expand first incomplete exercise
+    const firstIncompleteIndex = this.state.exercises.findIndex((_, i) => !Storage.isExerciseCompleted(i));
+    if (firstIncompleteIndex !== -1) {
+      const firstIncompleteCard = document.querySelector(`[data-index="${firstIncompleteIndex}"]`);
+      if (firstIncompleteCard) {
+        const expandable = firstIncompleteCard.querySelector('.exercise-expandable');
+        if (expandable) {
+          expandable.classList.remove('hidden');
+        }
+      }
     }
   },
 
@@ -681,7 +1099,12 @@ const App = {
 
     // Video link
     const videoLink = exercise?.videoUrl ?
-      `<a href="${exercise.videoUrl}" target="_blank" class="video-link" title="Watch video" onclick="event.stopPropagation()">🎥</a>` : '';
+      `<a href="${exercise.videoUrl}" target="_blank" rel="noopener noreferrer" class="video-link" aria-label="Watch video tutorial" onclick="event.stopPropagation()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+        </svg>
+      </a>` : '';
 
     // Build instructions HTML for expandable section
     // Combine exercise library instructions with exercise-specific instructions
@@ -700,22 +1123,19 @@ const App = {
       ? allInstructions.map(inst => `<li>${inst}</li>`).join('')
       : '';
 
-    // Combine tips and focus
-    const tipsAndFocus = [];
-    if (exerciseData.focus) {
-      tipsAndFocus.push(`<strong>Focus:</strong> ${exerciseData.focus}`);
-    }
-    if (exercise?.tips) {
-      tipsAndFocus.push(exercise.tips);
-    }
-
-    const tipsHTML = tipsAndFocus.length > 0
-      ? `<div class="exercise-tips"><strong>💡 Tips:</strong><br>${tipsAndFocus.join('<br>')}</div>`
+    // Show focus and tips separately, only when they have content
+    const focusHTML = exerciseData.focus
+      ? `<div class="exercise-focus"><strong>🎯 Focus:</strong> ${exerciseData.focus}</div>`
       : '';
 
-    const expandableContent = instructionsHTML || tipsHTML ? `
+    const tipsHTML = exercise?.tips
+      ? `<div class="exercise-tips"><strong>💡 Tips:</strong> ${exercise.tips}</div>`
+      : '';
+
+    const expandableContent = instructionsHTML || focusHTML || tipsHTML ? `
       <div class="exercise-expandable hidden">
         ${instructionsHTML ? `<div class="exercise-instructions"><strong>Instructions:</strong><ul>${instructionsHTML}</ul></div>` : ''}
+        ${focusHTML}
         ${tipsHTML}
       </div>
     ` : '';
@@ -725,42 +1145,47 @@ const App = {
 
     card.innerHTML = `
       <div class="exercise-header" style="cursor: pointer;">
+        <div class="exercise-checkbox ${isCompleted ? 'checked' : ''}" data-index="${index}">
+        </div>
         <div class="exercise-info">
-          <div class="exercise-name">
-            ${exerciseName}
-            ${videoLink}
-          </div>
+          <div class="exercise-name">${exerciseName}</div>
           <div class="exercise-details">
             ${detailsHTML}
           </div>
         </div>
-        <div class="exercise-checkbox ${isCompleted ? 'checked' : ''}" data-index="${index}">
-        </div>
+        ${videoLink}
       </div>
       ${expandableContent}
       ${this.createTimerHTML(exerciseData, index)}
     `;
 
-    // Add header click to expand/collapse
+    // Add header click to expand/collapse - TRACKED
     const header = card.querySelector('.exercise-header');
     const expandable = card.querySelector('.exercise-expandable');
 
     if (header && expandable) {
-      header.addEventListener('click', (e) => {
+      const expandHandler = (e) => {
         // Don't expand if clicking checkbox or video link
-        if (e.target.closest('.exercise-checkbox') || e.target.closest('.video-link')) {
+        if (e.target.closest('.exercise-checkbox')) {
+          return;
+        }
+        if (e.target.closest('.video-link')) {
           return;
         }
         expandable.classList.toggle('hidden');
-      });
+      };
+      this.addTrackedListener(header, 'click', expandHandler);
     }
 
-    // Add checkbox click handler
+    // Add checkbox click handler - TRACKED
     const checkbox = card.querySelector('.exercise-checkbox');
-    checkbox.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleExercise(index);
-    });
+    if (checkbox) {
+      const checkboxHandler = (e) => {
+        e.stopPropagation();
+        this.toggleExercise(index);
+      };
+      this.addTrackedListener(checkbox, 'click', checkboxHandler);
+    }
 
     // Add timer controls if needed
     this.attachTimerControls(card, exerciseData, index);
@@ -852,13 +1277,13 @@ const App = {
         }
       };
 
-      // Attach button listeners
+      // Attach button listeners - TRACKED
       const startBtn = exerciseTimerEl.querySelector('[data-action="start"]');
       const pauseBtn = exerciseTimerEl.querySelector('[data-action="pause"]');
       const resetBtn = exerciseTimerEl.querySelector('[data-action="reset"]');
 
       if (startBtn) {
-        startBtn.addEventListener('click', () => {
+        this.addTrackedListener(startBtn, 'click', () => {
           timer.start();
           startBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
@@ -866,7 +1291,7 @@ const App = {
       }
 
       if (pauseBtn) {
-        pauseBtn.addEventListener('click', () => {
+        this.addTrackedListener(pauseBtn, 'click', () => {
           timer.pause();
           pauseBtn.classList.add('hidden');
           startBtn.classList.remove('hidden');
@@ -874,7 +1299,7 @@ const App = {
       }
 
       if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
+        this.addTrackedListener(resetBtn, 'click', () => {
           timer.reset();
           pauseBtn.classList.add('hidden');
           startBtn.classList.remove('hidden');
@@ -911,7 +1336,7 @@ const App = {
       const resetBtn = restTimerEl.querySelector('[data-action="reset"]');
 
       if (startBtn) {
-        startBtn.addEventListener('click', () => {
+        this.addTrackedListener(startBtn, 'click', () => {
           timer.start();
           startBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
@@ -919,7 +1344,7 @@ const App = {
       }
 
       if (pauseBtn) {
-        pauseBtn.addEventListener('click', () => {
+        this.addTrackedListener(pauseBtn, 'click', () => {
           timer.pause();
           pauseBtn.classList.add('hidden');
           startBtn.classList.remove('hidden');
@@ -927,7 +1352,7 @@ const App = {
       }
 
       if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
+        this.addTrackedListener(resetBtn, 'click', () => {
           timer.reset();
           pauseBtn.classList.add('hidden');
           startBtn.classList.remove('hidden');
@@ -959,6 +1384,26 @@ const App = {
       const completed = this.state.exercises.filter((_, i) => Storage.isExerciseCompleted(i)).length;
       const total = this.state.exercises.length;
       this.showToast(`Exercise completed! ${completed}/${total} done ✓`);
+
+      // Collapse current exercise and expand next
+      const currentExpandable = card?.querySelector('.exercise-expandable');
+      if (currentExpandable && !currentExpandable.classList.contains('hidden')) {
+        currentExpandable.classList.add('hidden');
+      }
+
+      // Find and expand next exercise
+      const nextCard = document.querySelector(`[data-index="${index + 1}"]`);
+      if (nextCard) {
+        const nextExpandable = nextCard.querySelector('.exercise-expandable');
+        if (nextExpandable && nextExpandable.classList.contains('hidden')) {
+          nextExpandable.classList.remove('hidden');
+
+          // Scroll next exercise into view
+          setTimeout(() => {
+            nextCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
+        }
+      }
     }
   },
 
@@ -1021,27 +1466,80 @@ const App = {
       );
     }
 
+    // Sort alphabetically
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
     // Render
-    filtered.forEach(exercise => {
+    filtered.forEach((exercise, index) => {
       const card = document.createElement('div');
-      card.className = 'exercise-card';
+      card.className = 'exercise-card exercise-library-card';
+      card.dataset.exerciseId = exercise.id;
+
+      const instructionsHTML = exercise.instructions
+        ?.map(i => `<li>${i}</li>`)
+        .join('') || '';
 
       card.innerHTML = `
         <div class="exercise-header">
           <div class="exercise-info">
-            <div class="exercise-name">
-              ${exercise.name}
-              <a href="${exercise.videoUrl}" target="_blank" class="video-link">🎥</a>
-            </div>
+            <div class="exercise-name">${exercise.name}</div>
             <div class="exercise-details">
               <span>${exercise.category}</span>
             </div>
           </div>
+          <a href="${exercise.videoUrl}"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="video-link"
+             aria-label="Watch ${exercise.name} video tutorial"
+             onclick="event.stopPropagation()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+            </svg>
+          </a>
+        </div>
+        <div class="exercise-expanded-content">
+          ${instructionsHTML ? `
+            <div class="exercise-instructions">
+              <h4>Instructions:</h4>
+              <ul>${instructionsHTML}</ul>
+            </div>
+          ` : ''}
+          ${exercise.tips ? `
+            <div class="exercise-tips">
+              <h4>Tips:</h4>
+              <p>${exercise.tips}</p>
+            </div>
+          ` : ''}
         </div>
       `;
 
-      card.addEventListener('click', () => {
-        this.showExerciseDetail(exercise);
+      // Toggle expand/collapse on card click
+      card.addEventListener('click', (e) => {
+        // Don't toggle if clicking the video link
+        if (e.target.closest('.video-link')) {
+          return;
+        }
+
+        const isExpanded = card.classList.contains('expanded');
+
+        // Collapse all other cards
+        document.querySelectorAll('.exercise-library-card.expanded').forEach(c => {
+          if (c !== card) {
+            c.classList.remove('expanded');
+          }
+        });
+
+        // Toggle this card
+        card.classList.toggle('expanded');
+
+        // Scroll into view if expanding
+        if (!isExpanded) {
+          setTimeout(() => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
+        }
       });
 
       grid.appendChild(card);
@@ -1067,7 +1565,13 @@ const App = {
         <p>${exercise.tips}</p>
       ` : ''}
       <div style="margin-top: 20px;">
-        <a href="${exercise.videoUrl}" target="_blank" class="primary-btn" style="display: inline-block; text-decoration: none; color: white;">Watch Video 🎥</a>
+        <a href="${exercise.videoUrl}" target="_blank" rel="noopener noreferrer" class="primary-btn" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: white;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+          </svg>
+          Watch Video
+        </a>
       </div>
     `;
 
@@ -1140,7 +1644,15 @@ const App = {
           </div>
         </div>
         <div class="exercise-category">${exercise.category}</div>
-        ${exercise.videoUrl ? `<a href="${exercise.videoUrl}" target="_blank" class="video-link">🎥 Watch Video</a>` : ''}
+        ${exercise.videoUrl ? `
+          <a href="${exercise.videoUrl}" target="_blank" rel="noopener noreferrer" class="video-link-text" style="display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+            </svg>
+            Watch Video
+          </a>
+        ` : ''}
       `;
 
       // Add remove handler
@@ -1290,7 +1802,9 @@ const App = {
       }))
     };
 
-    Storage.startSession('custom');
+    // Start session immediately to track progress
+    Storage.startSession('custom', null, null);
+
     this.state.exercises = customWorkout.exercises;
     this.state.sections = null;
 
@@ -1298,11 +1812,6 @@ const App = {
     this.elements.workoutDuration.textContent = `${customWorkout.totalTime} min (estimated)`;
     this.updateWorkoutProgress();
     this.renderExercises();
-
-    const session = Storage.getCurrentSession();
-    if (session) {
-      this.elements.sessionStarted.textContent = `Started: ${Storage.formatDate(session.startedAt)}`;
-    }
 
     this.showView('workout');
     this.updateBreadcrumb('custom');
@@ -1316,7 +1825,6 @@ const App = {
     const session = Storage.getCurrentSession();
 
     if (session) {
-      console.log('Resuming previous session:', session);
       // Could automatically resume here if desired
     }
   },
@@ -1487,6 +1995,16 @@ const App = {
   },
 
   startWorkoutTimer() {
+    // Start session on first play if not started yet
+    if (this.state.pendingSession && !Storage.getCurrentSession()) {
+      Storage.startSession(
+        this.state.pendingSession.plan,
+        this.state.pendingSession.week,
+        this.state.pendingSession.day
+      );
+      this.state.pendingSession = null;
+    }
+
     if (!this.state.workoutStartTime) {
       // First time starting
       this.state.workoutStartTime = Date.now();
@@ -1515,11 +2033,34 @@ const App = {
   },
 
   resetWorkoutTimer() {
-    this.stopWorkoutTimer();
-    this.state.workoutStartTime = null;
-    this.state.workoutPausedAt = null;
-    this.updateWorkoutTimer();
-    this.updateTimerButton(false);
+    // Show custom confirmation dialog
+    this.showConfirm(
+      'All progress will be cleared and cannot be recovered.',
+      () => {
+        // Stop timer
+        this.stopWorkoutTimer();
+        this.state.workoutStartTime = null;
+        this.state.workoutPausedAt = null;
+        this.updateWorkoutTimer();
+        this.updateTimerButton(false);
+
+        // Reset session (clears all exercise completions)
+        Storage.resetSession();
+
+        // Re-render to update UI (this will show all exercises as unchecked)
+        this.renderExercises();
+        this.updateWorkoutProgress();
+        this.updateSectionProgress();
+
+        this.showToast('Workout reset', 'info');
+      },
+      {
+        title: 'Reset Workout?',
+        confirmText: 'Reset',
+        cancelText: 'Cancel',
+        isDanger: true
+      }
+    );
   },
 
   stopWorkoutTimer() {
