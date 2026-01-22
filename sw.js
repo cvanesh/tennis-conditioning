@@ -6,6 +6,8 @@ const STATIC_ASSETS = [
   './',
   './index.html',
   './css/styles.css',
+  './js/auth.js',
+  './js/features.js',
   './js/app.js',
   './js/timer.js',
   './js/storage.js',

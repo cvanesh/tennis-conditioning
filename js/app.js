@@ -352,8 +352,16 @@ const App = {
     }
   },
 
-  handleBack() {
+  async handleBack() {
     const currentView = this.state.currentView;
+
+    // Check if leaving an active workout
+    if (currentView === 'workout' && window.AppFeatures && AppFeatures.isWorkoutActive) {
+      const confirmed = await AppFeatures.confirmLeaveWorkout();
+      if (!confirmed) {
+        return; // User cancelled
+      }
+    }
 
     switch (currentView) {
       case 'weekSelector':
@@ -679,6 +687,11 @@ const App = {
       const isChecked = Storage.isExerciseCompleted(index);
       checkbox.classList.toggle('checked', isChecked);
       card.classList.toggle('completed', isChecked);
+
+      // Play audio feedback
+      if (window.AppFeatures && isChecked) {
+        AppFeatures.playSuccess();
+      }
     }
 
     // Update section progress
@@ -833,6 +846,11 @@ const App = {
     // Set state
     this.state.currentWeek = week;
     this.state.currentDay = day;
+
+    // Mark workout as active and enable wake lock
+    if (window.AppFeatures) {
+      AppFeatures.setWorkoutActive(true);
+    }
 
     // Start session immediately to track progress
     Storage.startSession('8-week', `week${week}`, day);
