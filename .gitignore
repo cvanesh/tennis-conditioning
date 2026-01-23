@@ -144,3 +144,12 @@ WEEKS_3-4_SUMMARY.md
 
 # Development tools and backups
 dev-tools/
+
+# Unencrypted sensitive data (use data-encrypted.js instead)
+js/data.js
+
+# Encryption tools (not needed in repo)
+encrypt-data.js
+encrypt-data.html
+generate-icons.html
+generate-icons-node.js

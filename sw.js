@@ -11,7 +11,7 @@ const STATIC_ASSETS = [
   './js/app.js',
   './js/timer.js',
   './js/storage.js',
-  './js/data.js',
+  './js/data-encrypted.js',
   './manifest.json'
 ];
 
