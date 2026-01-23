@@ -353,5 +353,5 @@ class Auth {
   }
 }
 
-// Export Auth instance
-window.Auth = new Auth();
+// Export the class - instance will be created in index.html
+window.AuthClass = Auth;

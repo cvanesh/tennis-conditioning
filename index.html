@@ -297,39 +297,43 @@
 
     <!-- App Initialization -->
     <script>
-      // Initialize app with authentication and features
-      (async function() {
+      // Create instances
+      window.Auth = new window.AuthClass();
+      window.AppFeatures = new window.AppFeaturesClass();
+
+      // Initialize app
+      (async function initApp() {
         // Check for corrupted storage
-        if (!AppFeatures.checkLocalStorage()) {
-          AppFeatures.handleCorruptedStorage();
+        if (!window.AppFeatures.checkLocalStorage()) {
+          window.AppFeatures.handleCorruptedStorage();
           return;
         }
 
         // Check if password protection is enabled
         if (window.ENCRYPTED_DATA) {
           // Check for valid session
-          if (!Auth.isSessionValid()) {
-            await Auth.showPasswordPrompt();
+          if (!window.Auth.isSessionValid()) {
+            await window.Auth.showPasswordPrompt();
           } else {
             // Re-authenticate with stored session
-            Auth.isAuthenticated = true;
+            window.Auth.isAuthenticated = true;
           }
         }
 
         // Validate data
         try {
           if (window.DATA) {
-            AppFeatures.validateExerciseData(window.DATA);
+            window.AppFeatures.validateExerciseData(window.DATA);
           }
         } catch (error) {
           console.error('Data validation failed:', error);
-          AppFeatures.showError('Application data is corrupted. Please contact support.', true);
+          window.AppFeatures.showError('Application data is corrupted. Please contact support.', true);
           return;
         }
 
         // Initialize the main app
         if (window.TennisApp) {
-          window.app = new TennisApp();
+          window.TennisApp.init();
         }
       })();
     </script>

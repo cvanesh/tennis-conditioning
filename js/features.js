@@ -7,11 +7,20 @@ class AppFeatures {
     this.isWorkoutActive = false;
     this.audioContext = null;
     this.isOnline = navigator.onLine;
+    this.initialized = false;
 
-    this.init();
+    // Delay initialization until DOM is ready
+    if (document.body) {
+      this.init();
+    } else {
+      document.addEventListener('DOMContentLoaded', () => this.init());
+    }
   }
 
   init() {
+    if (this.initialized) return;
+    this.initialized = true;
+
     this.initOfflineIndicator();
     this.initErrorHandling();
     this.initBeforeUnload();
@@ -394,5 +403,5 @@ class AppFeatures {
   }
 }
 
-// Export features instance
-window.AppFeatures = new AppFeatures();
+// Export the class - instance will be created in index.html
+window.AppFeaturesClass = AppFeatures;

@@ -2241,9 +2241,7 @@ const App = {
   }
 };
 
-// Initialize app when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => App.init());
-} else {
-  App.init();
-}
+// Export App for external initialization
+window.TennisApp = App;
+
+// Note: App is initialized from index.html after validation checks
