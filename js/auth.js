@@ -112,19 +112,25 @@ class Auth {
         atob(encryptedString).split('').map(char => char.charCodeAt(0))
       );
 
-      // Extract salt, iv, and encrypted data
+      // Extract salt (16 bytes), iv (12 bytes), authTag (16 bytes), and encrypted data
       const salt = encryptedData.slice(0, 16);
       const iv = encryptedData.slice(16, 28);
-      const data = encryptedData.slice(28);
+      const authTag = encryptedData.slice(28, 44);
+      const ciphertext = encryptedData.slice(44);
 
       // Derive key from password
       const key = await this.deriveKey(password, salt);
+
+      // Combine ciphertext and authTag for GCM decryption
+      const dataToDecrypt = new Uint8Array(ciphertext.length + authTag.length);
+      dataToDecrypt.set(ciphertext);
+      dataToDecrypt.set(authTag, ciphertext.length);
 
       // Decrypt data
       const decryptedBuffer = await crypto.subtle.decrypt(
         { name: 'AES-GCM', iv: iv },
         key,
-        data
+        dataToDecrypt
       );
 
       // Convert to string and parse JSON
@@ -150,6 +156,14 @@ class Auth {
 
       // Store decrypted data globally (only in memory)
       window.DATA = this.decryptedData;
+
+      // Expose individual data sections as global variables for app compatibility
+      window.EXERCISES = this.decryptedData.exercises;
+      window.WARMUP_PROTOCOL = this.decryptedData.warmup;
+      window.COOLDOWN_PROTOCOL = this.decryptedData.cooldown;
+      window.MATCH_DAY_PROTOCOL = this.decryptedData.matchDay;
+      window.NUTRITION_PLAN = this.decryptedData.nutrition;
+      window.EIGHT_WEEK_PROGRAM = this.decryptedData.eightWeek;
 
       this.isAuthenticated = true;
       this.lastActivity = Date.now();
@@ -198,6 +212,13 @@ class Auth {
     if (window.DATA) {
       window.DATA = null;
     }
+    // Clear individual global variables
+    window.EXERCISES = null;
+    window.WARMUP_PROTOCOL = null;
+    window.COOLDOWN_PROTOCOL = null;
+    window.MATCH_DAY_PROTOCOL = null;
+    window.NUTRITION_PLAN = null;
+    window.EIGHT_WEEK_PROGRAM = null;
   }
 
   // Show password prompt

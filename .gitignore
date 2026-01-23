@@ -150,6 +150,8 @@ js/data.js
 
 # Encryption tools (not needed in repo)
 encrypt-data.js
+encrypt-data-fixed.js
+test-encryption.js
 encrypt-data.html
 generate-icons.html
 generate-icons-node.js
