@@ -356,8 +356,8 @@ const App = {
     const currentView = this.state.currentView;
 
     // Check if leaving an active workout
-    if (currentView === 'workout' && window.AppFeatures && AppFeatures.isWorkoutActive) {
-      const confirmed = await AppFeatures.confirmLeaveWorkout();
+    if (currentView === 'workout' && window.AppFeatures && window.AppFeatures.isWorkoutActive) {
+      const confirmed = await window.AppFeatures.confirmLeaveWorkout();
       if (!confirmed) {
         return; // User cancelled
       }
@@ -690,7 +690,7 @@ const App = {
 
       // Play audio feedback
       if (window.AppFeatures && isChecked) {
-        AppFeatures.playSuccess();
+        window.AppFeatures.playSuccess();
       }
     }
 
@@ -849,7 +849,7 @@ const App = {
 
     // Mark workout as active and enable wake lock
     if (window.AppFeatures) {
-      AppFeatures.setWorkoutActive(true);
+      window.AppFeatures.setWorkoutActive(true);
     }
 
     // Start session immediately to track progress
