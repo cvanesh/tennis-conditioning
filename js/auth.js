@@ -8,6 +8,7 @@ class Auth {
     this.lastActivity = Date.now();
     this.encryptedData = null;
     this.decryptedData = null;
+    this.password = null; // Store password in memory only (heap), NOT in storage
 
     this.initSessionMonitoring();
   }
@@ -36,18 +37,19 @@ class Auth {
     // Handle page visibility changes for mobile
     document.addEventListener('visibilitychange', async () => {
       if (document.hidden) {
-        // Page hidden - clear sensitive data for security
+        // Page hidden - clear sensitive data for security (but keep password in memory)
         this.clearSensitiveData();
       } else {
-        // Page visible again - restore data if session is still valid
-        if (this.isSessionValid() && !window.DATA && window.ENCRYPTED_DATA) {
-          console.log('[Auth] Restoring data from valid session');
-          // Re-decrypt data using stored session
-          const password = sessionStorage.getItem('sessionKey');
-          if (password) {
-            await this.authenticate(password);
-            console.log('[Auth] Data restored successfully');
-          }
+        // Page visible again - restore data if password is still in memory
+        if (this.isSessionValid() && this.password && !window.DATA && window.ENCRYPTED_DATA) {
+          console.log('[Auth] Restoring data from memory');
+          // Re-decrypt data using password from memory (NOT from storage)
+          await this.authenticate(this.password);
+          console.log('[Auth] Data restored successfully');
+        } else if (!this.password && !window.DATA) {
+          // Password was lost (page reload) - need to re-authenticate
+          console.log('[Auth] Password not in memory, re-authentication required');
+          await this.showPasswordPrompt();
         }
       }
     });
@@ -180,12 +182,12 @@ class Auth {
       this.isAuthenticated = true;
       this.lastActivity = Date.now();
 
+      // Store password ONLY in memory (heap), NOT in any storage
+      this.password = password;
+
       // Store session in sessionStorage (cleared on browser close)
       sessionStorage.setItem('authenticated', 'true');
       sessionStorage.setItem('timestamp', Date.now().toString());
-      // Store password in sessionStorage for re-decryption when returning from background
-      // Note: sessionStorage is cleared when browser is closed, providing session-level security
-      sessionStorage.setItem('sessionKey', password);
 
       return true;
     } catch (error) {
@@ -210,10 +212,16 @@ class Auth {
   // Logout and clear data
   logout(message = 'Logged out successfully') {
     this.isAuthenticated = false;
+
+    // Clear password from memory
+    this.password = null;
+
+    // Clear decrypted data
     this.clearSensitiveData();
+
+    // Clear session storage
     sessionStorage.removeItem('authenticated');
     sessionStorage.removeItem('timestamp');
-    sessionStorage.removeItem('sessionKey');
 
     // Show message and reload
     alert(message);
