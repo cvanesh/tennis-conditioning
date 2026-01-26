@@ -311,8 +311,9 @@
 
         // Check if password protection is enabled
         if (window.ENCRYPTED_DATA) {
-          // Check for valid session
-          if (!window.Auth.isSessionValid()) {
+          // Check for valid session AND if data is available in memory
+          // On page reload, session may be valid but data/password is lost from memory
+          if (!window.Auth.isSessionValid() || !window.DATA) {
             await window.Auth.showPasswordPrompt();
           } else {
             // Re-authenticate with stored session

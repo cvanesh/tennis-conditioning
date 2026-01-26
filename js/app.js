@@ -13,7 +13,8 @@ const App = {
     workoutStartTime: null,
     workoutTimerInterval: null,
     eventListeners: [], // Track listeners for cleanup
-    isInitialized: false // Track if app has completed initialization
+    isInitialized: false, // Track if app has completed initialization
+    wasBlurred: false // Track if window was blurred to prevent initial focus event
   },
 
   // DOM Elements cache
@@ -252,8 +253,7 @@ const App = {
       }
     });
 
-    // Track if window was blurred (lost focus)
-    this.state.wasBlurred = false;
+    // Track when window loses focus
     window.addEventListener('blur', () => {
       this.state.wasBlurred = true;
     });
@@ -270,10 +270,10 @@ const App = {
 
   // Restore event listeners on dynamically created elements
   restoreDynamicEventListeners() {
-    // Safety check: ensure required data is loaded
-    if (typeof EIGHT_WEEK_PROGRAM === 'undefined' ||
-        typeof MATCH_DAY_PROTOCOL === 'undefined' ||
-        typeof NUTRITION_PLAN === 'undefined') {
+    // Safety check: ensure required data is loaded and not null
+    if (typeof EIGHT_WEEK_PROGRAM === 'undefined' || !EIGHT_WEEK_PROGRAM ||
+        typeof MATCH_DAY_PROTOCOL === 'undefined' || !MATCH_DAY_PROTOCOL ||
+        typeof NUTRITION_PLAN === 'undefined' || !NUTRITION_PLAN) {
       console.warn('[App] Data not loaded yet, skipping event listener restoration');
       return;
     }
