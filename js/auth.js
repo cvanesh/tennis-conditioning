@@ -9,6 +9,7 @@ class Auth {
     this.encryptedData = null;
     this.decryptedData = null;
     this.password = null; // Store password in memory only (heap), NOT in storage
+    this.isInitialLoad = true; // Flag to skip visibility handler during initial page load
 
     this.initSessionMonitoring();
   }
@@ -36,6 +37,12 @@ class Auth {
 
     // Handle page visibility changes for mobile
     document.addEventListener('visibilitychange', async () => {
+      // Skip during initial page load - let the main initialization handle it
+      if (this.isInitialLoad) {
+        console.log('[Auth] Skipping visibility change during initial load');
+        return;
+      }
+
       if (document.hidden) {
         // Page hidden - clear sensitive data for security (but keep password in memory)
         this.clearSensitiveData();
@@ -189,6 +196,9 @@ class Auth {
       sessionStorage.setItem('authenticated', 'true');
       sessionStorage.setItem('timestamp', Date.now().toString());
 
+      // Mark initial load as complete after first successful authentication
+      this.isInitialLoad = false;
+
       return true;
     } catch (error) {
       console.error('Authentication failed:', error);
@@ -215,6 +225,9 @@ class Auth {
 
     // Clear password from memory
     this.password = null;
+
+    // Reset initial load flag for next login
+    this.isInitialLoad = true;
 
     // Clear decrypted data
     this.clearSensitiveData();
