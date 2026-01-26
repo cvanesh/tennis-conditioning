@@ -35,6 +35,9 @@ const App = {
     // Setup event listeners
     this.setupEventListeners();
 
+    // Setup page lifecycle handlers for mobile
+    this.setupPageLifecycleHandlers();
+
     // Load saved session if exists
     this.loadSession();
 
@@ -223,6 +226,129 @@ const App = {
         this.handleFilterChange(e.currentTarget);
       });
     });
+  },
+
+  // Setup page lifecycle handlers for mobile browsers
+  setupPageLifecycleHandlers() {
+    // Handle page visibility changes (app backgrounding/foregrounding)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // Page became visible again - restore dynamic event listeners
+        console.log('[App] Page visible - restoring event listeners');
+        this.restoreDynamicEventListeners();
+      }
+    });
+
+    // Handle page show event (iOS Safari back/forward cache)
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        // Page was loaded from bfcache - restore event listeners
+        console.log('[App] Page restored from cache - restoring event listeners');
+        this.restoreDynamicEventListeners();
+      }
+    });
+
+    // Handle app resume on mobile (for PWAs)
+    window.addEventListener('focus', () => {
+      console.log('[App] Window focused - restoring event listeners');
+      this.restoreDynamicEventListeners();
+    });
+  },
+
+  // Restore event listeners on dynamically created elements
+  restoreDynamicEventListeners() {
+    // Re-attach listeners to plan cards
+    document.querySelectorAll('.plan-card').forEach(card => {
+      // Remove old listener first (if any) by cloning the node
+      const newCard = card.cloneNode(true);
+      card.parentNode.replaceChild(newCard, card);
+
+      // Add fresh listener
+      newCard.addEventListener('click', (e) => {
+        const plan = e.currentTarget.dataset.plan;
+        this.handlePlanSelect(plan);
+      });
+    });
+
+    // Re-attach listeners to week cards
+    document.querySelectorAll('.week-card').forEach(card => {
+      const newCard = card.cloneNode(true);
+      card.parentNode.replaceChild(newCard, card);
+
+      // Check if it's in week selector view
+      if (this.state.currentView === 'weekSelector') {
+        const weekNum = Array.from(card.parentNode.children).indexOf(newCard) + 1;
+        newCard.addEventListener('click', () => {
+          this.state.currentWeek = weekNum;
+          this.showWeekDays(weekNum);
+        });
+      }
+      // Check if it's in match day protocol view
+      else if (this.state.currentView === 'matchDayProtocol') {
+        const protocols = MATCH_DAY_PROTOCOL.protocols || [];
+        const index = Array.from(newCard.parentNode.children).indexOf(newCard);
+        if (protocols[index]) {
+          newCard.addEventListener('click', () => {
+            this.loadProtocolChecklist(protocols[index]);
+          });
+        }
+      }
+      // Check if it's in nutrition plan view
+      else if (this.state.currentView === 'nutritionPlan') {
+        const categories = NUTRITION_PLAN.categories || [];
+        const index = Array.from(newCard.parentNode.children).indexOf(newCard);
+        if (categories[index]) {
+          newCard.addEventListener('click', () => {
+            this.loadNutritionCategory(categories[index]);
+          });
+        }
+      }
+    });
+
+    // Re-attach listeners to day cards
+    document.querySelectorAll('.day-card').forEach(card => {
+      const newCard = card.cloneNode(true);
+      card.parentNode.replaceChild(newCard, card);
+
+      if (this.state.currentWeek) {
+        const weekKey = `week${this.state.currentWeek}`;
+        const weekData = EIGHT_WEEK_PROGRAM.program[weekKey];
+        const days = ['monday', 'tuesday', 'thursday', 'friday'];
+        const index = Array.from(newCard.parentNode.children).indexOf(newCard);
+        const day = days[index];
+
+        if (weekData && weekData[day]) {
+          newCard.addEventListener('click', () => {
+            this.state.currentDay = day;
+            this.loadWorkout(this.state.currentWeek, day, weekData[day]);
+          });
+        }
+      }
+    });
+
+    // Re-attach breadcrumb listeners
+    if (this.elements.breadcrumbPlan && this.state.currentPlan) {
+      const plan = this.state.currentPlan;
+      this.elements.breadcrumbPlan.onclick = (e) => {
+        e.preventDefault();
+        if (plan === '8-week') {
+          this.show8WeekProgram();
+        } else if (plan === 'match-day') {
+          this.showMatchDayProtocol();
+        } else if (plan === 'nutrition') {
+          this.showNutritionPlan();
+        }
+      };
+    }
+
+    if (this.elements.breadcrumbWeek && this.state.currentWeek) {
+      this.elements.breadcrumbWeek.onclick = (e) => {
+        e.preventDefault();
+        this.showWeekDays(this.state.currentWeek);
+      };
+    }
+
+    console.log('[App] Dynamic event listeners restored');
   },
 
   // ===================================
