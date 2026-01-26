@@ -12,7 +12,8 @@ const App = {
     timerManager: new TimerManager(),
     workoutStartTime: null,
     workoutTimerInterval: null,
-    eventListeners: [] // Track listeners for cleanup
+    eventListeners: [], // Track listeners for cleanup
+    isInitialized: false // Track if app has completed initialization
   },
 
   // DOM Elements cache
@@ -43,6 +44,9 @@ const App = {
 
     // Show initial view
     this.showView('planLibrary');
+
+    // Mark app as initialized
+    this.state.isInitialized = true;
   },
 
   // Register Service Worker for PWA functionality
@@ -232,7 +236,7 @@ const App = {
   setupPageLifecycleHandlers() {
     // Handle page visibility changes (app backgrounding/foregrounding)
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
+      if (!document.hidden && this.state.isInitialized) {
         // Page became visible again - restore dynamic event listeners
         console.log('[App] Page visible - restoring event listeners');
         this.restoreDynamicEventListeners();
@@ -241,22 +245,39 @@ const App = {
 
     // Handle page show event (iOS Safari back/forward cache)
     window.addEventListener('pageshow', (event) => {
-      if (event.persisted) {
+      if (event.persisted && this.state.isInitialized) {
         // Page was loaded from bfcache - restore event listeners
         console.log('[App] Page restored from cache - restoring event listeners');
         this.restoreDynamicEventListeners();
       }
     });
 
+    // Track if window was blurred (lost focus)
+    this.state.wasBlurred = false;
+    window.addEventListener('blur', () => {
+      this.state.wasBlurred = true;
+    });
+
     // Handle app resume on mobile (for PWAs)
     window.addEventListener('focus', () => {
-      console.log('[App] Window focused - restoring event listeners');
-      this.restoreDynamicEventListeners();
+      // Only restore if we previously lost focus AND app is initialized
+      if (this.state.wasBlurred && this.state.isInitialized) {
+        console.log('[App] Window focused - restoring event listeners');
+        this.restoreDynamicEventListeners();
+      }
     });
   },
 
   // Restore event listeners on dynamically created elements
   restoreDynamicEventListeners() {
+    // Safety check: ensure required data is loaded
+    if (typeof EIGHT_WEEK_PROGRAM === 'undefined' ||
+        typeof MATCH_DAY_PROTOCOL === 'undefined' ||
+        typeof NUTRITION_PLAN === 'undefined') {
+      console.warn('[App] Data not loaded yet, skipping event listener restoration');
+      return;
+    }
+
     // Re-attach listeners to plan cards
     document.querySelectorAll('.plan-card').forEach(card => {
       // Remove old listener first (if any) by cloning the node

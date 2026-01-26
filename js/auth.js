@@ -33,10 +33,22 @@ class Auth {
       this.clearSensitiveData();
     });
 
-    // Clear data when page becomes hidden
-    document.addEventListener('visibilitychange', () => {
+    // Handle page visibility changes for mobile
+    document.addEventListener('visibilitychange', async () => {
       if (document.hidden) {
+        // Page hidden - clear sensitive data for security
         this.clearSensitiveData();
+      } else {
+        // Page visible again - restore data if session is still valid
+        if (this.isSessionValid() && !window.DATA && window.ENCRYPTED_DATA) {
+          console.log('[Auth] Restoring data from valid session');
+          // Re-decrypt data using stored session
+          const password = sessionStorage.getItem('sessionKey');
+          if (password) {
+            await this.authenticate(password);
+            console.log('[Auth] Data restored successfully');
+          }
+        }
       }
     });
   }
@@ -171,6 +183,9 @@ class Auth {
       // Store session in sessionStorage (cleared on browser close)
       sessionStorage.setItem('authenticated', 'true');
       sessionStorage.setItem('timestamp', Date.now().toString());
+      // Store password in sessionStorage for re-decryption when returning from background
+      // Note: sessionStorage is cleared when browser is closed, providing session-level security
+      sessionStorage.setItem('sessionKey', password);
 
       return true;
     } catch (error) {
@@ -196,7 +211,9 @@ class Auth {
   logout(message = 'Logged out successfully') {
     this.isAuthenticated = false;
     this.clearSensitiveData();
-    sessionStorage.clear();
+    sessionStorage.removeItem('authenticated');
+    sessionStorage.removeItem('timestamp');
+    sessionStorage.removeItem('sessionKey');
 
     // Show message and reload
     alert(message);
