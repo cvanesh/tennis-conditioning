@@ -488,6 +488,22 @@
     <!-- Confetti Container -->
     <div id="confettiContainer" class="confetti-container"></div>
 
+    <!-- Debug Console (for mobile debugging) - Add ?debug=true to URL to enable -->
+    <script>
+      (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('debug') === 'true') {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+          script.onload = function() {
+            eruda.init();
+            console.log('Debug console enabled - Check the icon in bottom right corner');
+          };
+          document.head.appendChild(script);
+        }
+      })();
+    </script>
+
     <!-- Scripts -->
     <script src="./js/auth.js"></script>
     <script src="./js/features.js"></script>
