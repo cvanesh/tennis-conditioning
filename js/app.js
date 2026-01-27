@@ -1044,6 +1044,9 @@ const App = {
     this.updateWorkoutTimer();
     this.updateTimerButton(false);
 
+    // Show voice-guided button for 8-week program
+    this.showVoiceGuidedButton('8-week');
+
     this.showView('workout');
     this.updateBreadcrumb('8-week', week, day);
   },
@@ -1074,6 +1077,9 @@ const App = {
 
     // Render exercises with sections
     this.renderExercises();
+
+    // Show voice-guided button for supported plans
+    this.showVoiceGuidedButton(protocol.id);
 
     this.showView('workout');
     this.updateBreadcrumb(protocol.id);
@@ -1355,7 +1361,111 @@ const App = {
     // Add timer controls if needed
     this.attachTimerControls(card, exerciseData, index);
 
+    // Add duration toggle handler if present
+    const toggleSwitch = card.querySelector('.duration-toggle-switch');
+    if (toggleSwitch) {
+      const toggleHandler = (e) => {
+        e.stopPropagation();
+        this.toggleExerciseDuration(index, toggleSwitch);
+      };
+      this.addTrackedListener(toggleSwitch, 'click', toggleHandler);
+    }
+
     return card;
+  },
+
+  parseDurationRange(exerciseData) {
+    // Check if exerciseData has durationMin and durationMax fields
+    if (exerciseData.durationMin && exerciseData.durationMax) {
+      return {
+        min: exerciseData.durationMin,
+        max: exerciseData.durationMax
+      };
+    }
+
+    // Check if exerciseData has durationRange field (e.g., "20-30")
+    if (exerciseData.durationRange) {
+      const parts = String(exerciseData.durationRange).split('-');
+      if (parts.length === 2) {
+        return {
+          min: parseInt(parts[0]),
+          max: parseInt(parts[1])
+        };
+      }
+    }
+
+    // Check instructions for range pattern (e.g., "20-30 seconds", "Hold each leg 20-30 seconds")
+    if (exerciseData.instructions) {
+      const instructionText = Array.isArray(exerciseData.instructions)
+        ? exerciseData.instructions.join(' ')
+        : String(exerciseData.instructions);
+
+      // Match patterns like "20-30 seconds", "20-30 sec", "20-30s"
+      const rangeMatch = instructionText.match(/(\d+)\s*-\s*(\d+)\s*(?:seconds?|sec|s\b)/i);
+      if (rangeMatch) {
+        return {
+          min: parseInt(rangeMatch[1]),
+          max: parseInt(rangeMatch[2])
+        };
+      }
+    }
+
+    // Check from EXERCISES library instructions
+    if (typeof EXERCISES !== 'undefined' && exerciseData.exercise) {
+      const exerciseLib = EXERCISES[exerciseData.exercise];
+
+      if (exerciseLib && exerciseLib.instructions) {
+        const instructionText = Array.isArray(exerciseLib.instructions)
+          ? exerciseLib.instructions.join(' ')
+          : String(exerciseLib.instructions);
+
+        const rangeMatch = instructionText.match(/(\d+)\s*-\s*(\d+)\s*(?:seconds?|sec|s\b)/i);
+        if (rangeMatch) {
+          return {
+            min: parseInt(rangeMatch[1]),
+            max: parseInt(rangeMatch[2])
+          };
+        }
+      }
+    }
+
+    // No range found
+    return null;
+  },
+
+  toggleExerciseDuration(index, toggleSwitch) {
+    const exerciseData = this.state.exercises[index];
+    if (!exerciseData) return;
+
+    const durationRange = this.parseDurationRange(exerciseData);
+    if (!durationRange) return;
+
+    // Toggle between min and max
+    const isActive = toggleSwitch.classList.contains('active');
+
+    if (isActive) {
+      // Switch to min
+      toggleSwitch.classList.remove('active');
+      exerciseData.duration = durationRange.min;
+      exerciseData.useMaxDuration = false;
+    } else {
+      // Switch to max
+      toggleSwitch.classList.add('active');
+      exerciseData.duration = durationRange.max;
+      exerciseData.useMaxDuration = true;
+    }
+
+    // Update the timer display
+    const card = document.querySelector(`.exercise-card[data-index="${index}"]`);
+    if (card) {
+      const timerDisplay = card.querySelector('.timer-time');
+      if (timerDisplay) {
+        timerDisplay.textContent = TimeUtils.formatSeconds(exerciseData.duration);
+      }
+
+      // Re-attach timer with new duration
+      this.attachTimerControls(card, exerciseData, index);
+    }
   },
 
   createTimerHTML(exerciseData, index) {
@@ -1370,8 +1480,26 @@ const App = {
     let html = '';
 
     if (hasDuration) {
+      // Check if exercise has duration range
+      const durationRange = this.parseDurationRange(exerciseData);
+      const showToggle = durationRange && durationRange.min !== durationRange.max;
+
+      // Default to max duration if range exists and not already set
+      if (showToggle && !exerciseData.hasOwnProperty('useMaxDuration')) {
+        exerciseData.useMaxDuration = true;
+        exerciseData.duration = durationRange.max;
+      }
+
       html += `
         <div class="timer-section" data-timer-type="exercise" data-index="${index}">
+          ${showToggle ? `
+          <div class="exercise-duration-toggle">
+            <label class="duration-label" data-value="${durationRange.min}">${durationRange.min}s</label>
+            <div class="duration-toggle-switch ${exerciseData.useMaxDuration ? 'active' : ''}" data-index="${index}">
+              <div class="duration-toggle-knob"></div>
+            </div>
+            <label class="duration-label" data-value="${durationRange.max}">${durationRange.max}s</label>
+          </div>` : ''}
           <div class="timer-display">
             <div class="timer-time">${TimeUtils.formatSeconds(exerciseData.duration)}</div>
             <div class="timer-label">Exercise Time</div>
@@ -1415,8 +1543,27 @@ const App = {
     const restTimerEl = card.querySelector('[data-timer-type="rest"]');
 
     if (exerciseTimerEl && exerciseData.duration) {
+      // Save the toggle HTML if it exists (CRITICAL: prevents it from being wiped out)
+      const existingToggle = exerciseTimerEl.querySelector('.exercise-duration-toggle');
+      const toggleHTML = existingToggle ? existingToggle.outerHTML : '';
+
       const display = new CountdownDisplay(exerciseTimerEl);
       exerciseTimerEl.innerHTML = display.createTimerHTML('exercise');
+
+      // Restore the toggle HTML at the beginning
+      if (toggleHTML) {
+        exerciseTimerEl.insertAdjacentHTML('afterbegin', toggleHTML);
+
+        // Re-attach toggle event listener (since innerHTML replacement removes listeners)
+        const toggleSwitch = exerciseTimerEl.querySelector('.duration-toggle-switch');
+        if (toggleSwitch) {
+          const toggleHandler = (e) => {
+            e.stopPropagation();
+            this.toggleExerciseDuration(index, toggleSwitch);
+          };
+          this.addTrackedListener(toggleSwitch, 'click', toggleHandler);
+        }
+      }
 
       const timer = new Timer();
       timer.duration = exerciseData.duration;
@@ -2385,6 +2532,23 @@ const App = {
     `;
 
     modal.classList.add('active');
+  },
+
+  // ===================================
+  // VOICE-GUIDED WORKOUT
+  // ===================================
+
+  showVoiceGuidedButton(planType) {
+    const voiceBtn = document.getElementById('voiceGuidedBtn');
+    if (!voiceBtn) return;
+
+    // Show button only for supported plans
+    const supportedPlans = ['warmup', 'cooldown', '8-week'];
+    if (supportedPlans.includes(planType)) {
+      voiceBtn.style.display = 'flex';
+    } else {
+      voiceBtn.style.display = 'none';
+    }
   }
 };
 

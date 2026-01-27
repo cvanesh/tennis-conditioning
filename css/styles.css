@@ -861,6 +861,28 @@ body {
   min-width: 140px;
 }
 
+/* Exercise Duration Toggle (for range durations like 20-30s) */
+.exercise-duration-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  background: var(--surface-light);
+  border-radius: 8px;
+}
+
+.exercise-duration-toggle .duration-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: default;
+  user-select: none;
+  min-width: 30px;
+  text-align: center;
+}
+
 .timer-display {
   display: flex;
   align-items: center;
@@ -2132,4 +2154,773 @@ body {
   font-size: 0.75rem;
   opacity: 0.8;
   text-transform: capitalize;
+}
+/* ===================================
+   VOICE-GUIDED WORKOUT STYLES
+   =================================== */
+
+/* Voice-Guided Button */
+.timer-btn.voice-guided-btn {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--tennis-green) 0%, var(--primary-color) 100%) !important;
+  color: white !important;
+  border: 2px solid var(--tennis-green) !important;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.4) !important;
+}
+
+.timer-btn.voice-guided-btn:hover {
+  background: var(--tennis-green) !important;
+  transform: scale(1.15);
+  box-shadow: 0 4px 16px rgba(46, 125, 50, 0.6) !important;
+}
+
+.timer-btn.voice-guided-btn:active {
+  transform: scale(0.9);
+}
+
+/* Voice Config Modal */
+.voice-config-modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-header h2 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--text);
+}
+
+.modal-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.modal-footer {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
+}
+
+/* Config Sections */
+.config-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.config-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.config-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.config-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Config Options (Buttons) */
+.config-options {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.config-btn {
+  flex: 1;
+  min-width: 60px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.config-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+button.config-btn.active {
+  border-color: var(--tennis-green) !important;
+  background: var(--tennis-green) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
+}
+
+/* Config Toggle */
+.config-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.config-toggle input[type="checkbox"] {
+  display: none;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  background: var(--border);
+  border-radius: 13px;
+  transition: background 0.3s ease;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.config-toggle input:checked + .toggle-label .toggle-switch {
+  background: var(--accent);
+}
+
+.config-toggle input:checked + .toggle-label .toggle-switch::after {
+  transform: translateX(24px);
+}
+
+.toggle-text {
+  font-weight: var(--font-weight-medium);
+  color: var(--text);
+}
+
+/* Large Button */
+.large-btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: 200px;
+  justify-content: center;
+}
+
+/* Voice Workout Modal */
+.voice-workout-modal {
+  max-width: 550px;
+  width: 90%;
+  max-height: none;
+  overflow: hidden;
+  padding: 0;
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+.voice-workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.workout-status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.status-indicator {
+  font-size: 1.5rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  font-weight: var(--font-weight-medium);
+  font-size: 1rem;
+}
+
+.voice-workout-header .icon-btn {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+}
+
+.voice-workout-header .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.voice-workout-body {
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  overflow: hidden;
+}
+
+/* Progress Info */
+.voice-progress-info {
+  text-align: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--background) 100%);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.voice-progress-info h2 {
+  margin: 0 0 4px 0;
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.progress-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.progress-stats .separator {
+  opacity: 0.5;
+  margin: 0 2px;
+}
+
+/* Section Timeline Progress */
+.voice-section-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-md);
+  gap: 8px;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.timeline-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.timeline-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 3;
+}
+
+.timeline-section.completed .timeline-dot {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.timeline-section.completed .timeline-dot::after {
+  content: '✓';
+  position: absolute;
+  font-size: 1rem;
+}
+
+.timeline-section.active .timeline-dot {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.2);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(46, 125, 50, 0.1);
+  }
+}
+
+.timeline-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-section.active .timeline-label {
+  color: var(--primary-color);
+  font-weight: var(--font-weight-bold);
+}
+
+.timeline-section.completed .timeline-label {
+  color: var(--text-primary);
+}
+
+.timeline-connector {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.timeline-connector-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+/* Section Display */
+.voice-section-display {
+  text-align: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: linear-gradient(135deg, var(--accent-light) 0%, rgba(255, 255, 255, 0.5) 100%);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.12);
+}
+
+.section-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+  font-weight: var(--font-weight-medium);
+}
+
+.section-name {
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+/* Exercise Display */
+.voice-exercise-display {
+  text-align: center;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, #ffffff 0%, var(--surface) 100%);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.voice-exercise-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-gradient);
+}
+
+.voice-exercise-display .exercise-name {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.voice-exercise-display .exercise-details {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  background: var(--accent-light);
+  padding: 4px var(--spacing-sm);
+  border-radius: var(--radius-md);
+  display: inline-block;
+}
+
+/* Timer Display */
+.voice-timer-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md) 0;
+  background: radial-gradient(circle at center, var(--surface) 0%, transparent 70%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.voice-timer-display:active .timer-circle {
+  transform: scale(0.98);
+}
+
+.timer-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.08));
+  transition: transform 0.2s ease;
+}
+
+.timer-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 10;
+  opacity: 0.3;
+}
+
+.timer-ring-progress {
+  fill: none;
+  stroke: url(#timerGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 565.48;
+  stroke-dashoffset: 565.48;
+  transition: stroke-dashoffset 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+  filter: drop-shadow(0 0 8px rgba(46, 125, 50, 0.4));
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.timer-value {
+  font-size: 3rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+}
+
+.timer-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Timer Play/Pause Overlay */
+.timer-play-overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.voice-timer-display:hover .timer-play-overlay {
+  opacity: 1;
+}
+
+/* Compact Controls */
+.voice-compact-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0;
+  border-top: 1px solid var(--border);
+  margin-top: var(--spacing-sm);
+}
+
+.voice-compact-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.voice-compact-btn:hover {
+  transform: scale(1.1);
+  border-color: var(--accent);
+  background: var(--accent-light);
+  color: var(--accent);
+  box-shadow: 0 3px 10px rgba(46, 125, 50, 0.2);
+}
+
+.voice-compact-btn:active {
+  transform: scale(0.95);
+}
+
+.voice-compact-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.voice-compact-btn:disabled:hover {
+  transform: none;
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.primary-compact {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3), inset 0 -1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.primary-compact:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 16px rgba(46, 125, 50, 0.4), inset 0 -1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.primary-compact:active {
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3), inset 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure icons are visible in compact buttons */
+.voice-compact-btn svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.primary-compact svg {
+  fill: white;
+  color: white;
+}
+
+/* Hidden state for play/pause icons */
+.hidden {
+  display: none !important;
+}
+
+/* Duration Range Toggle */
+.duration-range-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0 auto;
+  max-width: 300px;
+}
+
+.duration-range-toggle label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.duration-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.duration-toggle-switch.active {
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+  border-color: transparent;
+}
+
+.duration-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.duration-toggle-switch.active .duration-toggle-knob {
+  transform: translateX(30px);
+}
+
+/* Responsive Design for Voice Modals */
+@media (max-width: 768px) {
+  .voice-config-modal,
+  .voice-workout-modal {
+    width: 95%;
+    max-width: 95%;
+  }
+
+  .voice-workout-body {
+    padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+    gap: 6px;
+  }
+
+  .voice-exercise-display .exercise-name {
+    font-size: 1.3rem;
+  }
+
+  .duration-range-toggle {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    gap: var(--spacing-xs);
+  }
+
+  .duration-range-toggle label {
+    font-size: 0.85rem;
+  }
+
+  .voice-exercise-display .exercise-details {
+    font-size: 0.8rem;
+  }
+
+  .timer-circle {
+    width: 180px;
+    height: 180px;
+  }
+
+  .timer-value {
+    font-size: 2.5rem;
+  }
+
+  .voice-compact-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .primary-compact {
+    width: 48px;
+    height: 48px;
+  }
+
+  .voice-compact-controls {
+    padding: var(--spacing-sm) 0;
+    gap: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .config-options {
+    justify-content: stretch;
+  }
+
+  .config-btn {
+    flex: 1 1 calc(50% - var(--spacing-xs));
+  }
+
+  .voice-workout-body {
+    padding: var(--spacing-xs) var(--spacing-sm) var(--spacing-sm);
+    gap: 4px;
+  }
+
+  .timer-circle {
+    width: 160px;
+    height: 160px;
+  }
+
+  .timer-value {
+    font-size: 2.2rem;
+  }
+
+  .voice-exercise-display .exercise-name {
+    font-size: 1.1rem;
+  }
+
+  .voice-compact-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .voice-compact-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .primary-compact {
+    width: 44px;
+    height: 44px;
+  }
+
+  .primary-compact svg {
+    width: 20px;
+    height: 20px;
+  }
 }

@@ -212,6 +212,14 @@
                                     <path d="M3 3v5h5"/>
                                 </svg>
                             </button>
+                            <button id="voiceGuidedBtn" class="timer-btn voice-guided-btn" title="Start Voice-Guided Workout" style="display: none;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                    <line x1="12" y1="19" x2="12" y2="23"/>
+                                    <line x1="8" y1="23" x2="16" y2="23"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -281,6 +289,185 @@
         </div>
     </div>
 
+    <!-- Voice-Guided Workout Configuration Modal -->
+    <div id="voiceConfigModal" class="modal">
+        <div class="modal-content voice-config-modal">
+            <button class="modal-close" id="voiceConfigClose">&times;</button>
+            <div class="modal-header">
+                <h2>Voice-Guided Workout</h2>
+                <p>Configure your hands-free workout experience</p>
+            </div>
+            <div class="modal-body">
+                <div class="config-section">
+                    <label class="config-label">
+                        <span class="config-title">Pause Between Exercises</span>
+                        <span class="config-description">Rest time before next exercise</span>
+                    </label>
+                    <div class="config-options">
+                        <button class="config-btn" data-pause="5">5s</button>
+                        <button class="config-btn active" data-pause="10">10s</button>
+                        <button class="config-btn" data-pause="15">15s</button>
+                        <button class="config-btn" data-pause="30">30s</button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <label class="config-label">
+                        <span class="config-title">Voice Guidance</span>
+                        <span class="config-description">Spoken exercise instructions</span>
+                    </label>
+                    <div class="config-toggle">
+                        <input type="checkbox" id="voiceEnabled" checked>
+                        <label for="voiceEnabled" class="toggle-label">
+                            <span class="toggle-switch"></span>
+                            <span class="toggle-text">Enabled</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <label class="config-label">
+                        <span class="config-title">Audio Countdown</span>
+                        <span class="config-description">Beeps for last 5 seconds</span>
+                    </label>
+                    <div class="config-toggle">
+                        <input type="checkbox" id="beepsEnabled" checked>
+                        <label for="beepsEnabled" class="toggle-label">
+                            <span class="toggle-switch"></span>
+                            <span class="toggle-text">Enabled</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="startVoiceWorkout" class="primary-btn large-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    Start Workout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice-Guided Workout Modal -->
+    <div id="voiceWorkoutModal" class="modal">
+        <div class="modal-content voice-workout-modal">
+            <div class="voice-workout-header">
+                <div class="workout-status">
+                    <span class="status-indicator">🎙️</span>
+                    <span class="status-text">Voice Mode Active</span>
+                </div>
+                <button class="icon-btn" id="voiceWorkoutClose" title="Stop Workout">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="voice-workout-body">
+                <!-- Progress Info -->
+                <div class="voice-progress-info">
+                    <h2 id="voiceWorkoutTitle">Warm-Up Protocol</h2>
+                    <div class="progress-stats">
+                        <span id="voiceExerciseProgress">Exercise 1 of 10</span>
+                        <span class="separator">•</span>
+                        <span id="voiceTotalTime">0:00 elapsed</span>
+                    </div>
+                </div>
+
+                <!-- Section Timeline Progress -->
+                <div class="voice-section-timeline" id="voiceSectionTimeline">
+                    <!-- Timeline will be generated dynamically -->
+                </div>
+
+                <!-- Current Section (kept for reference, can be hidden) -->
+                <div class="voice-section-display" style="display: none;">
+                    <div class="section-label">Current Section</div>
+                    <div id="voiceCurrentSection" class="section-name">Dynamic Stretching</div>
+                </div>
+
+                <!-- Current Exercise -->
+                <div class="voice-exercise-display">
+                    <div id="voiceCurrentExercise" class="exercise-name">Arm Circles</div>
+                    <div id="voiceExerciseDetails" class="exercise-details">
+                        2 sets • 30 seconds each
+                    </div>
+                </div>
+
+                <!-- Duration Range Toggle (shown only for range durations) -->
+                <div id="durationRangeToggle" class="duration-range-toggle" style="display: none;">
+                    <label id="durationMinLabel">20s</label>
+                    <div class="duration-toggle-switch" id="durationToggleSwitch">
+                        <div class="duration-toggle-knob"></div>
+                    </div>
+                    <label id="durationMaxLabel">30s</label>
+                </div>
+
+                <!-- Timer Display (Clickable) -->
+                <div class="voice-timer-display" id="voiceTimerClickable" title="Click to Play/Pause">
+                    <div class="timer-circle">
+                        <svg class="timer-ring" viewBox="0 0 200 200">
+                            <defs>
+                                <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4caf50;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="timer-ring-bg" cx="100" cy="100" r="90"/>
+                            <circle class="timer-ring-progress" cx="100" cy="100" r="90" id="voiceTimerRing"/>
+                        </svg>
+                        <div class="timer-text">
+                            <div id="voiceTimerDisplay" class="timer-value">00:00</div>
+                            <div id="voiceTimerLabel" class="timer-label">Ready</div>
+                        </div>
+                        <!-- Play/Pause Icon Overlay -->
+                        <div class="timer-play-overlay">
+                            <svg class="play-icon" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg class="pause-icon hidden" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 4h4v16H6zM14 4h4v16h-4z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compact Navigation Controls -->
+                <div class="voice-compact-controls">
+                    <button id="voicePrevSectionBtn" class="voice-compact-btn" title="Previous Section">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M11 19l-7-7 7-7M18 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button id="voicePrevExerciseBtn" class="voice-compact-btn" title="Previous Exercise">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button id="voicePlayPauseBtn" class="voice-compact-btn primary-compact" title="Play/Pause">
+                        <svg class="play-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <svg class="pause-icon hidden" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 4h4v16H6zM14 4h4v16h-4z"/>
+                        </svg>
+                    </button>
+                    <button id="voiceNextExerciseBtn" class="voice-compact-btn" title="Next Exercise">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                    <button id="voiceNextSectionBtn" class="voice-compact-btn" title="Next Section">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M13 5l7 7-7 7M6 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast" class="toast"></div>
 
@@ -293,6 +480,8 @@
     <script src="./js/data-encrypted.js"></script>
     <script src="./js/storage.js"></script>
     <script src="./js/timer.js"></script>
+    <script src="./js/voice-workout.js"></script>
+    <script src="./js/voice-workout-controller.js"></script>
     <script src="./js/app.js"></script>
 
     <!-- App Initialization -->
@@ -335,6 +524,12 @@
         // Initialize the main app
         if (window.TennisApp) {
           window.TennisApp.init();
+        }
+
+        // Initialize Voice Workout Controller
+        if (window.VoiceWorkoutController) {
+          window.VoiceWorkout = new window.VoiceWorkoutController();
+          window.VoiceWorkout.init();
         }
       })();
     </script>
