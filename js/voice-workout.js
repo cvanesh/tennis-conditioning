@@ -439,7 +439,8 @@ class VoiceWorkoutStateManager {
       config: {
         pauseDuration: config.pauseDuration || 10,
         voiceEnabled: config.voiceEnabled !== false,
-        beepsEnabled: config.beepsEnabled !== false
+        beepsEnabled: config.beepsEnabled !== false,
+        wakeLockEnabled: config.wakeLockEnabled === true
       },
       startTime: Date.now(),
       totalElapsed: 0

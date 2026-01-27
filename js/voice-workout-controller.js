@@ -40,6 +40,7 @@ class VoiceWorkoutController {
     this.elements.pauseButtons = document.querySelectorAll('[data-pause]');
     this.elements.voiceEnabledToggle = document.getElementById('voiceEnabled');
     this.elements.beepsEnabledToggle = document.getElementById('beepsEnabled');
+    this.elements.wakeLockEnabledToggle = document.getElementById('wakeLockEnabled');
     this.elements.startVoiceWorkoutBtn = document.getElementById('startVoiceWorkout');
 
     // Workout Modal
@@ -82,6 +83,20 @@ class VoiceWorkoutController {
     });
     this.elements.startVoiceWorkoutBtn?.addEventListener('click', () => this.startWorkout());
 
+    // Toggle text updates
+    this.elements.voiceEnabledToggle?.addEventListener('change', (e) => {
+      const label = e.target.parentElement.querySelector('.toggle-text');
+      if (label) label.textContent = e.target.checked ? 'Enabled' : 'Disabled';
+    });
+    this.elements.beepsEnabledToggle?.addEventListener('change', (e) => {
+      const label = e.target.parentElement.querySelector('.toggle-text');
+      if (label) label.textContent = e.target.checked ? 'Enabled' : 'Disabled';
+    });
+    this.elements.wakeLockEnabledToggle?.addEventListener('change', (e) => {
+      const label = e.target.parentElement.querySelector('.toggle-text');
+      if (label) label.textContent = e.target.checked ? 'Enabled' : 'Disabled';
+    });
+
     // Workout Modal
     this.elements.workoutClose?.addEventListener('click', () => this.confirmStopWorkout());
     this.elements.playPauseBtn?.addEventListener('click', () => this.togglePlayPause());
@@ -122,6 +137,7 @@ class VoiceWorkoutController {
     this.selectPauseDuration(document.querySelector('[data-pause="10"]'));
     this.elements.voiceEnabledToggle.checked = true;
     this.elements.beepsEnabledToggle.checked = true;
+    this.elements.wakeLockEnabledToggle.checked = false; // Disabled by default
 
     this.elements.configModal.classList.add('active');
   }
@@ -144,7 +160,8 @@ class VoiceWorkoutController {
     return {
       pauseDuration: parseInt(pauseBtn?.dataset.pause || '10'),
       voiceEnabled: this.elements.voiceEnabledToggle?.checked !== false,
-      beepsEnabled: this.elements.beepsEnabledToggle?.checked !== false
+      beepsEnabled: this.elements.beepsEnabledToggle?.checked !== false,
+      wakeLockEnabled: this.elements.wakeLockEnabledToggle?.checked === true
     };
   }
 
@@ -160,6 +177,9 @@ class VoiceWorkoutController {
       return;
     }
 
+    // Clear any existing session (start fresh, don't resume)
+    this.stateManager.clearState();
+
     // Get config
     const config = this.getConfig();
 
@@ -167,8 +187,10 @@ class VoiceWorkoutController {
     this.voiceGuide.setEnabled(config.voiceEnabled);
     this.audioManager.setEnabled(config.beepsEnabled);
 
-    // Request wake lock
-    await this.wakeLockManager.request();
+    // Request wake lock only if enabled
+    if (config.wakeLockEnabled) {
+      await this.wakeLockManager.request();
+    }
 
     // Create initial state
     this.state = this.stateManager.createInitialState(planData, config);
@@ -839,8 +861,10 @@ class VoiceWorkoutController {
     this.voiceGuide.setEnabled(this.state.config.voiceEnabled);
     this.audioManager.setEnabled(this.state.config.beepsEnabled);
 
-    // Request wake lock
-    this.wakeLockManager.request();
+    // Request wake lock only if it was enabled in the saved session
+    if (this.state.config.wakeLockEnabled) {
+      this.wakeLockManager.request();
+    }
 
     // Show modal
     this.showWorkoutModal();
