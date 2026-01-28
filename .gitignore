@@ -157,3 +157,6 @@ generate-icons.html
 generate-icons-node.js
 voice-test.html
 debug-hamstring.html
+
+# Code validation script (development only)
+validate-code.js

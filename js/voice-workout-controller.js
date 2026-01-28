@@ -239,11 +239,13 @@ class VoiceWorkoutController {
   }
 
   isFirstExerciseInSection() {
+    if (!this.state || !this.state.exercises || !this.state.sections) return false;
+
     // Check if current exercise is the first in its section
     const currentExercise = this.state.exercises[this.state.currentExerciseIndex];
     const section = this.state.sections[this.state.currentSectionIndex];
 
-    if (!section || !section.exercises) return false;
+    if (!section || !section.exercises || !currentExercise) return false;
 
     return section.exercises[0]?.name === currentExercise.name;
   }
@@ -422,6 +424,12 @@ class VoiceWorkoutController {
   }
 
   showCompletionSummary() {
+    if (!this.state) {
+      console.warn('Cannot show completion summary: state is null');
+      this.closeWorkout();
+      return;
+    }
+
     const minutes = Math.floor(this.state.totalElapsed / 60);
     const seconds = this.state.totalElapsed % 60;
 
@@ -465,18 +473,23 @@ class VoiceWorkoutController {
 
   async pause() {
     this.isRunning = false;
-    this.state.timerState.running = false;
 
     // Cancel any ongoing voice announcements
     this.voiceGuide.cancel();
 
-    this.stateManager.saveState(this.state);
+    if (this.state && this.state.timerState) {
+      this.state.timerState.running = false;
+      this.stateManager.saveState(this.state);
+    }
+
     this.updatePlayPauseButton();
 
     await this.voiceGuide.announcePause();
   }
 
   async resume() {
+    if (!this.state) return;
+
     this.isRunning = true;
     this.state.timerState.running = true;
     this.stateManager.saveState(this.state);
@@ -486,6 +499,7 @@ class VoiceWorkoutController {
   }
 
   async repeatInstructions() {
+    if (!this.state || !this.state.exercises) return;
     const exercise = this.state.exercises[this.state.currentExerciseIndex];
     if (exercise) {
       await this.voiceGuide.announceInstructions(exercise);
@@ -497,6 +511,8 @@ class VoiceWorkoutController {
   // ===================================
 
   navigateSection(direction) {
+    if (!this.state || !this.state.sections || !this.state.exercises) return;
+
     const newIndex = this.state.currentSectionIndex + direction;
 
     if (newIndex < 0 || newIndex >= this.state.sections.length) {
@@ -522,6 +538,8 @@ class VoiceWorkoutController {
   }
 
   navigateExercise(direction) {
+    if (!this.state || !this.state.exercises || !this.state.sections) return;
+
     const newIndex = this.state.currentExerciseIndex + direction;
 
     if (newIndex < 0 || newIndex >= this.state.exercises.length) {
@@ -699,9 +717,12 @@ class VoiceWorkoutController {
   }
 
   updateTotalTime() {
+    if (!this.state) return;
     const minutes = Math.floor(this.state.totalElapsed / 60);
     const seconds = this.state.totalElapsed % 60;
-    this.elements.totalTime.textContent = `${minutes}:${String(seconds).padStart(2, '0')} elapsed`;
+    if (this.elements.totalTime) {
+      this.elements.totalTime.textContent = `${minutes}:${String(seconds).padStart(2, '0')} elapsed`;
+    }
   }
 
   updatePlayPauseButton() {
@@ -734,6 +755,8 @@ class VoiceWorkoutController {
   }
 
   updateNavigationButtons() {
+    if (!this.state) return;
+
     // Disable prev section if at first section
     if (this.elements.prevSectionBtn) {
       this.elements.prevSectionBtn.disabled = this.state.currentSectionIndex === 0;
@@ -1026,12 +1049,22 @@ class VoiceWorkoutController {
   }
 
   setupDurationRangeToggle() {
+    if (!this.state || !this.state.exercises) {
+      if (this.elements.durationRangeToggle) {
+        this.elements.durationRangeToggle.style.display = 'none';
+      }
+      this.currentDurationRange = null;
+      return;
+    }
+
     // Setup duration range toggle UI if current exercise has range
     const exercise = this.state.exercises[this.state.currentExerciseIndex];
     const durationStr = exercise?.duration || exercise?.time;
 
     if (!durationStr) {
-      this.elements.durationRangeToggle.style.display = 'none';
+      if (this.elements.durationRangeToggle) {
+        this.elements.durationRangeToggle.style.display = 'none';
+      }
       this.currentDurationRange = null;
       return;
     }
