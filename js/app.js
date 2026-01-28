@@ -128,7 +128,7 @@ const App = {
       headerTitle: document.getElementById('headerTitle'),
       headerTitleGroup: document.getElementById('headerTitleGroup'),
       backBtn: document.getElementById('backBtn'),
-      themeBtn: document.getElementById('themeBtn'),
+      settingsBtn: document.getElementById('settingsBtn'),
 
       // Breadcrumb
       breadcrumb: document.getElementById('breadcrumb'),
@@ -166,6 +166,11 @@ const App = {
       modal: document.getElementById('modal'),
       modalBody: document.getElementById('modalBody'),
 
+      // Settings Modal
+      settingsModal: document.getElementById('settingsModal'),
+      settingsClose: document.getElementById('settingsClose'),
+      globalDurationPreference: document.getElementById('globalDurationPreference'),
+
       // Toast
       toast: document.getElementById('toast')
     };
@@ -180,8 +185,8 @@ const App = {
     this.elements.headerTitleGroup.addEventListener('click', () => this.goHome());
     this.elements.headerTitleGroup.style.cursor = 'pointer';
 
-    // Theme button
-    this.elements.themeBtn.addEventListener('click', () => this.cycleTheme());
+    // Settings button
+    this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
     // Plan cards
     document.querySelectorAll('.plan-card').forEach(card => {
@@ -217,6 +222,39 @@ const App = {
       if (e.target === this.elements.modal) {
         this.closeModal();
       }
+    });
+
+    // Settings modal
+    if (this.elements.settingsClose) {
+      this.elements.settingsClose.addEventListener('click', () => this.closeSettings());
+    }
+
+    if (this.elements.settingsModal) {
+      this.elements.settingsModal.addEventListener('click', (e) => {
+        if (e.target === this.elements.settingsModal) {
+          this.closeSettings();
+        }
+      });
+    }
+
+    // Duration preference toggle in settings
+    if (this.elements.globalDurationPreference) {
+      this.elements.globalDurationPreference.addEventListener('change', (e) => {
+        this.handleSettingsDurationChange(e.target.checked);
+      });
+    }
+
+    // Theme selection buttons in settings
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const themeBtn = e.currentTarget;
+        const themeName = themeBtn.dataset.theme;
+        this.setTheme(themeName);
+
+        // Update active state
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        themeBtn.classList.add('active');
+      });
     });
 
     // Exercise search
@@ -1384,7 +1422,19 @@ const App = {
 
     const expandableContent = instructionsHTML || focusHTML || tipsHTML ? `
       <div class="exercise-expandable hidden">
-        ${instructionsHTML ? `<div class="exercise-instructions"><strong>Instructions:</strong><ul>${instructionsHTML}</ul></div>` : ''}
+        ${instructionsHTML ? `
+          <div class="exercise-instructions-wrapper">
+            <div class="exercise-instructions"><strong>Instructions:</strong><ul>${instructionsHTML}</ul></div>
+            ${exercise?.videoUrl ? `
+              <a href="${exercise.videoUrl}" target="_blank" rel="noopener noreferrer" class="video-link-btn video-link-btn-instructions" aria-label="Watch video tutorial">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
+                </svg>
+              </a>
+            ` : ''}
+          </div>
+        ` : ''}
         ${focusHTML}
         ${tipsHTML}
       </div>
@@ -1398,9 +1448,8 @@ const App = {
     const timerControls = timerHTML ? `
       <div class="exercise-inline-controls">
         ${timerHTML}
-        ${videoLink}
       </div>
-    ` : (videoLink ? `<div class="exercise-inline-controls">${videoLink}</div>` : '');
+    ` : '';
 
     card.innerHTML = `
       <div class="exercise-header" style="cursor: pointer;">
@@ -2789,6 +2838,44 @@ const App = {
     `;
 
     modal.classList.add('active');
+  },
+
+  // ===================================
+  // SETTINGS MODAL
+  // ===================================
+
+  openSettings() {
+    const modal = this.elements.settingsModal;
+    if (!modal) return;
+
+    // Duration preference is already set via the shared globalDurationPreference element
+
+    // Set active theme button
+    const currentTheme = document.body.getAttribute('data-theme') || 'wimbledon';
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+    });
+
+    modal.classList.add('active');
+  },
+
+  closeSettings() {
+    const modal = this.elements.settingsModal;
+    if (modal) {
+      modal.classList.remove('active');
+    }
+  },
+
+  handleSettingsDurationChange(useMax) {
+    // Update the global duration toggle if it exists
+    const globalToggle = document.getElementById('globalDurationPreference');
+    if (globalToggle) {
+      globalToggle.checked = useMax;
+
+      // Trigger the global duration change handler
+      this.handleGlobalDurationChange();
+    }
   },
 
   // ===================================
