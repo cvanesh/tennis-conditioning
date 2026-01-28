@@ -161,21 +161,40 @@ class Timer {
     if (settings.soundEnabled && 'AudioContext' in window) {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.value = 0.3;
-
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.2);
+        // Resume audio context if suspended (required for iOS and some browsers)
+        if (audioContext.state === 'suspended') {
+          audioContext.resume().then(() => {
+            this.playBeep(audioContext);
+          }).catch(error => {
+            console.log('Failed to resume audio context:', error);
+          });
+        } else {
+          this.playBeep(audioContext);
+        }
       } catch (error) {
-        console.log('Audio playback not supported');
+        console.log('Audio playback not supported:', error);
       }
+    }
+  }
+
+  // Helper method to play the beep sound
+  playBeep(audioContext) {
+    try {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.value = 0.3;
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (error) {
+      console.log('Failed to play beep:', error);
     }
   }
 

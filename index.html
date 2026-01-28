@@ -195,31 +195,41 @@
                             <span id="workoutProgress">0/12 exercises</span>
                         </div>
                     </div>
-                    <div class="workout-timer">
-                        <div class="timer-display">
-                            <span class="timer-icon">⏱️</span>
-                            <span id="workoutTimer">0:00</span>
+                    <div class="workout-header-right">
+                        <div class="global-duration-toggle" id="globalDurationToggle" style="display: none;">
+                            <span class="duration-label">Min</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="globalDurationPreference" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="duration-label">Max</span>
                         </div>
-                        <div class="timer-controls">
-                            <button id="playPauseBtn" class="timer-btn" title="Play">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M8 5v14l11-7z"/>
-                                </svg>
-                            </button>
-                            <button id="resetTimerBtn" class="timer-btn" title="Reset">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                    <path d="M3 3v5h5"/>
-                                </svg>
-                            </button>
-                            <button id="voiceGuidedBtn" class="timer-btn voice-guided-btn" title="Start Voice-Guided Workout" style="display: none;">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                    <line x1="12" y1="19" x2="12" y2="23"/>
-                                    <line x1="8" y1="23" x2="16" y2="23"/>
-                                </svg>
-                            </button>
+                        <div class="workout-timer">
+                            <div class="timer-display">
+                                <span class="timer-icon">⏱️</span>
+                                <span id="workoutTimer">0:00</span>
+                            </div>
+                            <div class="timer-controls">
+                                <button id="playPauseBtn" class="timer-btn" title="Play">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                </button>
+                                <button id="resetTimerBtn" class="timer-btn" title="Reset">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                        <path d="M3 3v5h5"/>
+                                    </svg>
+                                </button>
+                                <button id="voiceGuidedBtn" class="timer-btn voice-guided-btn" title="Start Voice-Guided Workout" style="display: none;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                        <line x1="12" y1="19" x2="12" y2="23"/>
+                                        <line x1="8" y1="23" x2="16" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

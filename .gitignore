@@ -160,3 +160,6 @@ debug-hamstring.html
 
 # Code validation script (development only)
 validate-code.js
+
+# Snapshots and screenshots for development/testing
+snapshots/

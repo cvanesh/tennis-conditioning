@@ -14,7 +14,8 @@ const App = {
     workoutTimerInterval: null,
     eventListeners: [], // Track listeners for cleanup
     isInitialized: false, // Track if app has completed initialization
-    wasBlurred: false // Track if window was blurred to prevent initial focus event
+    wasBlurred: false, // Track if window was blurred to prevent initial focus event
+    exerciseTimers: {} // Track individual exercise timers to prevent multiple instances
   },
 
   // DOM Elements cache
@@ -231,6 +232,14 @@ const App = {
         this.handleFilterChange(e.currentTarget);
       });
     });
+
+    // Global duration preference toggle
+    const globalDurationToggle = document.getElementById('globalDurationPreference');
+    if (globalDurationToggle) {
+      globalDurationToggle.addEventListener('change', () => {
+        this.handleGlobalDurationChange();
+      });
+    }
   },
 
   // Setup page lifecycle handlers for mobile browsers
@@ -994,6 +1003,14 @@ const App = {
     this.state.currentWeek = week;
     this.state.currentDay = day;
 
+    // Reset workout timer state when loading a new workout
+    this.state.workoutStartTime = null;
+    this.state.workoutPausedAt = null;
+    if (this.state.workoutTimerInterval) {
+      clearInterval(this.state.workoutTimerInterval);
+      this.state.workoutTimerInterval = null;
+    }
+
     // Mark workout as active and enable wake lock
     if (window.AppFeatures) {
       window.AppFeatures.setWorkoutActive(true);
@@ -1052,6 +1069,14 @@ const App = {
   },
 
   showWorkout(protocol) {
+    // Reset workout timer state when loading a new workout
+    this.state.workoutStartTime = null;
+    this.state.workoutPausedAt = null;
+    if (this.state.workoutTimerInterval) {
+      clearInterval(this.state.workoutTimerInterval);
+      this.state.workoutTimerInterval = null;
+    }
+
     // Start session immediately to track progress
     Storage.startSession(protocol.id, null, null);
 
@@ -1085,6 +1110,45 @@ const App = {
     this.updateBreadcrumb(protocol.id);
   },
 
+  handleGlobalDurationChange() {
+    // Get the current preference (checked = max, unchecked = min)
+    const globalToggle = document.getElementById('globalDurationPreference');
+    const useMax = globalToggle ? globalToggle.checked : true;
+
+    // Update all exercises with duration ranges
+    this.state.exercises.forEach((exercise, index) => {
+      const durationRange = this.parseDurationRange(exercise);
+      if (durationRange && durationRange.min !== durationRange.max) {
+        // Apply preference
+        exercise.duration = useMax ? durationRange.max : durationRange.min;
+        exercise.useMaxDuration = useMax;
+
+        // Update the timer display for this exercise
+        const card = document.querySelector(`.exercise-card[data-index="${index}"]`);
+        if (card) {
+          const timerEl = card.querySelector('[data-timer-type="exercise"] .timer-time');
+          if (timerEl) {
+            timerEl.textContent = TimeUtils.formatSeconds(exercise.duration);
+          }
+        }
+      }
+    });
+  },
+
+  checkAndShowGlobalDurationToggle() {
+    const globalToggle = document.getElementById('globalDurationToggle');
+    if (!globalToggle) return;
+
+    // Check if any exercise has a duration range
+    const hasRanges = this.state.exercises.some(exercise => {
+      const range = this.parseDurationRange(exercise);
+      return range && range.min !== range.max;
+    });
+
+    // Show or hide the toggle
+    globalToggle.style.display = hasRanges ? 'flex' : 'none';
+  },
+
   renderExercises() {
     const list = this.elements.exerciseList;
 
@@ -1097,6 +1161,18 @@ const App = {
       list.innerHTML = '<div class="empty-state"><p>No exercises in this workout</p></div>';
       return;
     }
+
+    // Apply global duration preference to all exercises before rendering
+    const globalToggle = document.getElementById('globalDurationPreference');
+    const useMax = globalToggle ? globalToggle.checked : true;
+
+    this.state.exercises.forEach(exercise => {
+      const durationRange = this.parseDurationRange(exercise);
+      if (durationRange && durationRange.min !== durationRange.max) {
+        exercise.duration = useMax ? durationRange.max : durationRange.min;
+        exercise.useMaxDuration = useMax;
+      }
+    });
 
     // If we have sections, group exercises by section
     if (this.state.sections) {
@@ -1207,6 +1283,9 @@ const App = {
         }
       }
     }
+
+    // Check if we should show the global duration toggle
+    this.checkAndShowGlobalDurationToggle();
   },
 
   collapseAllSections() {
@@ -1268,10 +1347,10 @@ const App = {
       detailsHTML += `<span>${exerciseData.rest}s rest</span>`;
     }
 
-    // Video link
+    // Video link as button
     const videoLink = exercise?.videoUrl ?
-      `<a href="${exercise.videoUrl}" target="_blank" rel="noopener noreferrer" class="video-link" aria-label="Watch video tutorial" onclick="event.stopPropagation()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      `<a href="${exercise.videoUrl}" target="_blank" rel="noopener noreferrer" class="video-link-btn" aria-label="Watch video tutorial" onclick="event.stopPropagation()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
           <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"/>
         </svg>
@@ -1314,8 +1393,18 @@ const App = {
     // Use exercise name from data, fall back to exercise library name
     const exerciseName = exerciseData.name || exercise?.name || exerciseData.exercise;
 
+    // Create timer controls inline
+    const timerHTML = this.createTimerHTML(exerciseData, index);
+    const timerControls = timerHTML ? `
+      <div class="exercise-inline-controls">
+        ${timerHTML}
+        ${videoLink}
+      </div>
+    ` : (videoLink ? `<div class="exercise-inline-controls">${videoLink}</div>` : '');
+
     card.innerHTML = `
       <div class="exercise-header" style="cursor: pointer;">
+        <div class="exercise-number">${index + 1}</div>
         <div class="exercise-checkbox ${isCompleted ? 'checked' : ''}" data-index="${index}">
         </div>
         <div class="exercise-info">
@@ -1324,10 +1413,9 @@ const App = {
             ${detailsHTML}
           </div>
         </div>
-        ${videoLink}
+        ${timerControls}
       </div>
       ${expandableContent}
-      ${this.createTimerHTML(exerciseData, index)}
     `;
 
     // Add header click to expand/collapse - TRACKED
@@ -1336,11 +1424,17 @@ const App = {
 
     if (header && expandable) {
       const expandHandler = (e) => {
-        // Don't expand if clicking checkbox or video link
+        // Don't expand if clicking checkbox, timer controls, or video link
         if (e.target.closest('.exercise-checkbox')) {
           return;
         }
-        if (e.target.closest('.video-link')) {
+        if (e.target.closest('.exercise-inline-controls')) {
+          return;
+        }
+        if (e.target.closest('.timer-btn')) {
+          return;
+        }
+        if (e.target.closest('.video-link-btn')) {
           return;
         }
         expandable.classList.toggle('hidden');
@@ -1360,16 +1454,6 @@ const App = {
 
     // Add timer controls if needed
     this.attachTimerControls(card, exerciseData, index);
-
-    // Add duration toggle handler if present
-    const toggleSwitch = card.querySelector('.duration-toggle-switch');
-    if (toggleSwitch) {
-      const toggleHandler = (e) => {
-        e.stopPropagation();
-        this.toggleExerciseDuration(index, toggleSwitch);
-      };
-      this.addTrackedListener(toggleSwitch, 'click', toggleHandler);
-    }
 
     return card;
   },
@@ -1433,41 +1517,6 @@ const App = {
     return null;
   },
 
-  toggleExerciseDuration(index, toggleSwitch) {
-    const exerciseData = this.state.exercises[index];
-    if (!exerciseData) return;
-
-    const durationRange = this.parseDurationRange(exerciseData);
-    if (!durationRange) return;
-
-    // Toggle between min and max
-    const isActive = toggleSwitch.classList.contains('active');
-
-    if (isActive) {
-      // Switch to min
-      toggleSwitch.classList.remove('active');
-      exerciseData.duration = durationRange.min;
-      exerciseData.useMaxDuration = false;
-    } else {
-      // Switch to max
-      toggleSwitch.classList.add('active');
-      exerciseData.duration = durationRange.max;
-      exerciseData.useMaxDuration = true;
-    }
-
-    // Update the timer display
-    const card = document.querySelector(`.exercise-card[data-index="${index}"]`);
-    if (card) {
-      const timerDisplay = card.querySelector('.timer-time');
-      if (timerDisplay) {
-        timerDisplay.textContent = TimeUtils.formatSeconds(exerciseData.duration);
-      }
-
-      // Re-attach timer with new duration
-      this.attachTimerControls(card, exerciseData, index);
-    }
-  },
-
   createTimerHTML(exerciseData, index) {
     // Only show timer if exercise has duration
     if (!exerciseData.duration && !exerciseData.rest) {
@@ -1480,34 +1529,28 @@ const App = {
     let html = '';
 
     if (hasDuration) {
-      // Check if exercise has duration range
-      const durationRange = this.parseDurationRange(exerciseData);
-      const showToggle = durationRange && durationRange.min !== durationRange.max;
-
-      // Default to max duration if range exists and not already set
-      if (showToggle && !exerciseData.hasOwnProperty('useMaxDuration')) {
-        exerciseData.useMaxDuration = true;
-        exerciseData.duration = durationRange.max;
-      }
-
       html += `
-        <div class="timer-section" data-timer-type="exercise" data-index="${index}">
-          ${showToggle ? `
-          <div class="exercise-duration-toggle">
-            <label class="duration-label" data-value="${durationRange.min}">${durationRange.min}s</label>
-            <div class="duration-toggle-switch ${exerciseData.useMaxDuration ? 'active' : ''}" data-index="${index}">
-              <div class="duration-toggle-knob"></div>
-            </div>
-            <label class="duration-label" data-value="${durationRange.max}">${durationRange.max}s</label>
-          </div>` : ''}
-          <div class="timer-display">
+        <div class="timer-section-horizontal" data-timer-type="exercise" data-index="${index}">
+          <div class="timer-display-compact">
             <div class="timer-time">${TimeUtils.formatSeconds(exerciseData.duration)}</div>
-            <div class="timer-label">Exercise Time</div>
           </div>
           <div class="timer-controls">
-            <button class="timer-btn start" data-action="start">▶</button>
-            <button class="timer-btn pause hidden" data-action="pause">⏸</button>
-            <button class="timer-btn reset" data-action="reset">↻</button>
+            <button class="timer-btn start" data-action="start" title="Start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+            <button class="timer-btn pause hidden" data-action="pause" title="Pause">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+              </svg>
+            </button>
+            <button class="timer-btn reset" data-action="reset" title="Reset">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+            </button>
           </div>
           <div class="timer-progress">
             <div class="timer-progress-bar" style="width: 0%"></div>
@@ -1518,15 +1561,28 @@ const App = {
 
     if (hasRest) {
       html += `
-        <div class="rest-timer hidden" data-timer-type="rest" data-index="${index}">
-          <div class="timer-display">
+        <div class="rest-timer-horizontal hidden" data-timer-type="rest" data-index="${index}">
+          <div class="timer-display-compact">
             <div class="timer-time">${TimeUtils.formatSeconds(exerciseData.rest)}</div>
-            <div class="timer-label">Rest Time</div>
+            <div class="timer-label-small">Rest</div>
           </div>
           <div class="timer-controls">
-            <button class="timer-btn start" data-action="start">▶</button>
-            <button class="timer-btn pause hidden" data-action="pause">⏸</button>
-            <button class="timer-btn reset" data-action="reset">↻</button>
+            <button class="timer-btn start" data-action="start" title="Start">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+            <button class="timer-btn pause hidden" data-action="pause" title="Pause">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+              </svg>
+            </button>
+            <button class="timer-btn reset" data-action="reset" title="Reset">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+            </button>
           </div>
           <div class="timer-progress">
             <div class="timer-progress-bar" style="width: 0%"></div>
@@ -1542,31 +1598,26 @@ const App = {
     const exerciseTimerEl = card.querySelector('[data-timer-type="exercise"]');
     const restTimerEl = card.querySelector('[data-timer-type="rest"]');
 
+    // Stop and clean up old exercise timer if it exists
+    const oldExerciseTimerKey = `exercise-${index}`;
+    if (this.state.exerciseTimers[oldExerciseTimerKey]) {
+      this.state.exerciseTimers[oldExerciseTimerKey].stop();
+      delete this.state.exerciseTimers[oldExerciseTimerKey];
+    }
+
+    // Stop and clean up old rest timer if it exists
+    const oldRestTimerKey = `rest-${index}`;
+    if (this.state.exerciseTimers[oldRestTimerKey]) {
+      this.state.exerciseTimers[oldRestTimerKey].stop();
+      delete this.state.exerciseTimers[oldRestTimerKey];
+    }
+
     if (exerciseTimerEl && exerciseData.duration) {
-      // Save the toggle HTML if it exists (CRITICAL: prevents it from being wiped out)
-      const existingToggle = exerciseTimerEl.querySelector('.exercise-duration-toggle');
-      const toggleHTML = existingToggle ? existingToggle.outerHTML : '';
-
-      const display = new CountdownDisplay(exerciseTimerEl);
-      exerciseTimerEl.innerHTML = display.createTimerHTML('exercise');
-
-      // Restore the toggle HTML at the beginning
-      if (toggleHTML) {
-        exerciseTimerEl.insertAdjacentHTML('afterbegin', toggleHTML);
-
-        // Re-attach toggle event listener (since innerHTML replacement removes listeners)
-        const toggleSwitch = exerciseTimerEl.querySelector('.duration-toggle-switch');
-        if (toggleSwitch) {
-          const toggleHandler = (e) => {
-            e.stopPropagation();
-            this.toggleExerciseDuration(index, toggleSwitch);
-          };
-          this.addTrackedListener(toggleSwitch, 'click', toggleHandler);
-        }
-      }
-
       const timer = new Timer();
       timer.duration = exerciseData.duration;
+
+      // Store timer instance for cleanup
+      this.state.exerciseTimers[oldExerciseTimerKey] = timer;
       timer.onTick = (remaining, duration) => {
         const timeEl = exerciseTimerEl.querySelector('.timer-time');
         const progressBar = exerciseTimerEl.querySelector('.timer-progress-bar');
@@ -1583,6 +1634,21 @@ const App = {
 
       timer.onComplete = () => {
         this.showToast('Exercise complete! 💪');
+
+        // Reset timer to initial duration
+        const durationRange = this.parseDurationRange(exerciseData);
+        if (durationRange) {
+          timer.duration = exerciseData.useMaxDuration ? durationRange.max : durationRange.min;
+        }
+        timer.remaining = timer.duration;
+
+        // Update display to show reset time
+        const timeEl = exerciseTimerEl.querySelector('.timer-time');
+        if (timeEl) {
+          timeEl.textContent = TimeUtils.formatSeconds(timer.duration);
+        }
+
+        // Show rest timer if available
         if (restTimerEl && exerciseData.rest) {
           restTimerEl.classList.remove('hidden');
           // Auto-start rest timer would go here
@@ -1624,6 +1690,9 @@ const App = {
       const timer = new Timer();
       timer.duration = exerciseData.rest;
 
+      // Store timer instance for cleanup
+      this.state.exerciseTimers[oldRestTimerKey] = timer;
+
       timer.onTick = (remaining, duration) => {
         const timeEl = restTimerEl.querySelector('.timer-time');
         const progressBar = restTimerEl.querySelector('.timer-progress-bar');
@@ -1640,6 +1709,16 @@ const App = {
 
       timer.onComplete = () => {
         this.showToast('Rest complete! Ready for next exercise 🎾');
+
+        // Reset timer to initial duration
+        timer.remaining = timer.duration;
+
+        // Update display to show reset time
+        const timeEl = restTimerEl.querySelector('.timer-time');
+        if (timeEl) {
+          timeEl.textContent = TimeUtils.formatSeconds(timer.duration);
+        }
+
         restTimerEl.classList.add('hidden');
       };
 
@@ -1697,13 +1776,29 @@ const App = {
       const total = this.state.exercises.length;
       this.showToast(`Exercise completed! ${completed}/${total} done ✓`);
 
+      // Check if all exercises are now completed
+      if (completed === total && total > 0) {
+        setTimeout(() => {
+          this.showWorkoutCompletionSummary();
+        }, 500); // Small delay to let the toast show first
+      }
+
       // Collapse current exercise and expand next
       const currentExpandable = card?.querySelector('.exercise-expandable');
       if (currentExpandable && !currentExpandable.classList.contains('hidden')) {
         currentExpandable.classList.add('hidden');
       }
 
-      // Find and expand next exercise
+      // Check if current section is complete and open next section if so
+      if (this.state.sections) {
+        const sectionInfo = this.getSectionForExercise(index);
+        if (sectionInfo && this.isSectionComplete(sectionInfo.sectionIndex)) {
+          this.openNextSection(sectionInfo.sectionIndex);
+          return; // Skip opening next exercise in same section
+        }
+      }
+
+      // Find and expand next exercise (if not moving to next section)
       const nextCard = document.querySelector(`[data-index="${index + 1}"]`);
       if (nextCard) {
         const nextExpandable = nextCard.querySelector('.exercise-expandable');
@@ -1719,11 +1814,174 @@ const App = {
     }
   },
 
+  // Helper: Get section info for an exercise index
+  getSectionForExercise(exerciseIndex) {
+    if (!this.state.sections) return null;
+
+    let currentExerciseCount = 0;
+    for (let sectionIndex = 0; sectionIndex < this.state.sections.length; sectionIndex++) {
+      const section = this.state.sections[sectionIndex];
+      const sectionExerciseCount = section.exercises.length;
+
+      if (exerciseIndex < currentExerciseCount + sectionExerciseCount) {
+        return {
+          sectionIndex,
+          exerciseIndexInSection: exerciseIndex - currentExerciseCount,
+          startExerciseIndex: currentExerciseCount,
+          endExerciseIndex: currentExerciseCount + sectionExerciseCount - 1
+        };
+      }
+
+      currentExerciseCount += sectionExerciseCount;
+    }
+
+    return null;
+  },
+
+  // Helper: Check if all exercises in a section are complete
+  isSectionComplete(sectionIndex) {
+    if (!this.state.sections || sectionIndex >= this.state.sections.length) return false;
+
+    const sectionInfo = this.getSectionForExercise(this.getSectionStartIndex(sectionIndex));
+    if (!sectionInfo) return false;
+
+    for (let i = sectionInfo.startExerciseIndex; i <= sectionInfo.endExerciseIndex; i++) {
+      if (!Storage.isExerciseCompleted(i)) {
+        return false;
+      }
+    }
+
+    return true;
+  },
+
+  // Helper: Get starting exercise index for a section
+  getSectionStartIndex(sectionIndex) {
+    let count = 0;
+    for (let i = 0; i < sectionIndex; i++) {
+      count += this.state.sections[i].exercises.length;
+    }
+    return count;
+  },
+
+  // Helper: Open next section and expand its first exercise
+  openNextSection(currentSectionIndex) {
+    const nextSectionIndex = currentSectionIndex + 1;
+    if (!this.state.sections || nextSectionIndex >= this.state.sections.length) {
+      return; // No next section
+    }
+
+    // Find and expand the next section header
+    const sectionHeaders = document.querySelectorAll('.section-header-card');
+    if (sectionHeaders[nextSectionIndex]) {
+      const nextSectionHeader = sectionHeaders[nextSectionIndex];
+
+      // Collapse all sections first
+      sectionHeaders.forEach(header => {
+        header.classList.add('collapsed');
+        const container = header.parentElement;
+        const exercisesContainer = container.querySelector('.section-exercises');
+        if (exercisesContainer) {
+          exercisesContainer.classList.add('hidden');
+        }
+      });
+
+      // Expand the next section
+      nextSectionHeader.classList.remove('collapsed');
+      const nextSectionContainer = nextSectionHeader.parentElement;
+      const nextExercisesContainer = nextSectionContainer.querySelector('.section-exercises');
+      if (nextExercisesContainer) {
+        nextExercisesContainer.classList.remove('hidden');
+      }
+
+      // Find and expand first exercise in next section
+      const firstExerciseIndex = this.getSectionStartIndex(nextSectionIndex);
+      const firstExerciseCard = document.querySelector(`[data-index="${firstExerciseIndex}"]`);
+
+      if (firstExerciseCard) {
+        const expandable = firstExerciseCard.querySelector('.exercise-expandable');
+        if (expandable) {
+          expandable.classList.remove('hidden');
+        }
+
+        // Scroll to next section
+        setTimeout(() => {
+          nextSectionHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  },
+
   updateWorkoutProgress() {
     const total = this.state.exercises.length;
     const completed = Storage.getCompletedCount();
 
     this.elements.workoutProgress.textContent = `${completed}/${total} exercises`;
+  },
+
+  showWorkoutCompletionSummary() {
+    // Stop the workout timer
+    const duration = this.stopWorkoutTimer();
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+
+    // Play success sound if available
+    if (window.AppFeatures) {
+      window.AppFeatures.playSuccess();
+    }
+
+    // Show completion modal
+    const emojis = ['🎉', '🎊', '💪', '🏆', '🌟', '✨', '🎯'];
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+
+    const messages = [
+      'Awesome workout!',
+      'Great job!',
+      'You crushed it!',
+      'Outstanding performance!',
+      'Fantastic work!',
+      'Well done!',
+      'Superb effort!'
+    ];
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+    this.elements.modalBody.innerHTML = `
+      <div style="text-align: center; padding: 20px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">${randomEmoji}</div>
+        <h2 style="margin: 16px 0; color: var(--tennis-green);">Workout Complete!</h2>
+        <p style="margin: 12px 0; font-size: 1.1rem; color: var(--text-secondary);">${randomMessage}</p>
+        <div style="display: grid; gap: 12px; margin: 24px 0; text-align: left; max-width: 300px; margin-left: auto; margin-right: auto;">
+          <div style="padding: 16px; background: var(--surface); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-secondary);">⏱️ Total Time:</span>
+            <strong style="font-size: 1.2rem; color: var(--text-primary);">${minutes}:${String(seconds).padStart(2, '0')}</strong>
+          </div>
+          <div style="padding: 16px; background: var(--surface); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-secondary);">✅ Exercises:</span>
+            <strong style="font-size: 1.2rem; color: var(--text-primary);">${this.state.exercises.length}</strong>
+          </div>
+          ${this.state.sections ? `
+          <div style="padding: 16px; background: var(--surface); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-secondary);">📋 Sections:</span>
+            <strong style="font-size: 1.2rem; color: var(--text-primary);">${this.state.sections.length}</strong>
+          </div>
+          ` : ''}
+        </div>
+        <button onclick="document.getElementById('modal').classList.remove('active'); App.resetWorkoutOnCompletion();"
+                class="modal-btn modal-btn-primary"
+                style="width: 100%; margin-top: 8px; padding: 14px;">
+          Done
+        </button>
+      </div>
+    `;
+
+    this.elements.modal.classList.add('active');
+  },
+
+  resetWorkoutOnCompletion() {
+    // Reset timer state (already stopped)
+    this.state.workoutStartTime = null;
+    this.state.workoutPausedAt = null;
+    this.updateWorkoutTimer();
+    this.updateTimerButton(false);
   },
 
   handleResetSession() {
