@@ -1290,14 +1290,29 @@ body {
   color: white;
 }
 
+.timer-btn.start:hover {
+  background: var(--tennis-green-dark);
+  transform: scale(1.05);
+}
+
 .timer-btn.pause {
-  background: var(--tennis-yellow);
-  color: var(--text-primary);
+  background: var(--warning);
+  color: white;
+}
+
+.timer-btn.pause:hover {
+  background: #F57C00;
+  transform: scale(1.05);
 }
 
 .timer-btn.reset {
   background: var(--error);
   color: white;
+}
+
+.timer-btn.reset:hover {
+  background: #D32F2F;
+  transform: scale(1.05);
 }
 
 .timer-btn:active {
