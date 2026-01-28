@@ -223,13 +223,16 @@ class VoiceWorkoutController {
     const isNewSection = this.isFirstExerciseInSection();
     if (isNewSection) {
       await this.announceSection(section);
+      if (!this.state) return; // Workout may have been stopped during announcement
     }
 
     // Announce exercise
     await this.announceExercise(exercise);
+    if (!this.state) return; // Workout may have been stopped during announcement
 
     // Start countdown
     await this.startCountdown();
+    if (!this.state) return; // Workout may have been stopped during countdown
 
     // Start exercise timer
     this.startExerciseTimer(exercise);
@@ -297,6 +300,8 @@ class VoiceWorkoutController {
   }
 
   startExerciseTimer(exercise) {
+    if (!this.state) return; // Guard against null state
+
     // Parse duration (e.g., "30 seconds", "1 minute", "2 x 30 seconds")
     const duration = this.parseDuration(exercise.duration || exercise.time || '30 seconds');
 
@@ -341,6 +346,8 @@ class VoiceWorkoutController {
   async onExerciseComplete() {
     this.stopTimer();
 
+    if (!this.state) return; // Guard against null state
+
     // Move to next exercise
     this.state.currentExerciseIndex++;
 
@@ -354,6 +361,7 @@ class VoiceWorkoutController {
         currentSection.name,
         this.state.sections[this.state.currentSectionIndex + 1]?.name
       );
+      if (!this.state) return; // Workout may have been stopped during announcement
       this.state.currentSectionIndex++;
     }
 
@@ -368,6 +376,8 @@ class VoiceWorkoutController {
   }
 
   async startRestPeriod() {
+    if (!this.state) return; // Guard against null state
+
     this.state.timerState.type = 'rest';
     this.state.timerState.total = this.state.config.pauseDuration;
     this.state.timerState.elapsed = 0;
@@ -381,6 +391,7 @@ class VoiceWorkoutController {
     const nextExercise = this.state.exercises[this.state.currentExerciseIndex];
     if (nextExercise) {
       await this.voiceGuide.speak(`Next: ${nextExercise.name}`);
+      if (!this.state) return; // Workout may have been stopped during announcement
     }
 
     this.timerInterval = setInterval(() => {
@@ -455,6 +466,10 @@ class VoiceWorkoutController {
   async pause() {
     this.isRunning = false;
     this.state.timerState.running = false;
+
+    // Cancel any ongoing voice announcements
+    this.voiceGuide.cancel();
+
     this.stateManager.saveState(this.state);
     this.updatePlayPauseButton();
 
