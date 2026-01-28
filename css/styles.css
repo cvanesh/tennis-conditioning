@@ -2519,8 +2519,8 @@ button.config-btn.active {
 .timeline-connector {
   position: absolute;
   top: 42px;
-  left: 0;
-  right: 0;
+  left: 12%;
+  right: 12%;
   height: 3px;
   background: var(--border);
   z-index: 1;

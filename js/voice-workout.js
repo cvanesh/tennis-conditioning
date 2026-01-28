@@ -65,7 +65,7 @@ class VoiceGuideManager {
     // Cancel any ongoing speech
     this.cancel();
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const utterance = new SpeechSynthesisUtterance(text);
 
       // Set voice properties
@@ -81,13 +81,21 @@ class VoiceGuideManager {
       };
 
       utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event);
+        console.warn('Speech synthesis error (non-critical):', event.error || event.type);
         this.currentUtterance = null;
-        reject(event);
+        // Don't reject - just resolve to continue workout
+        resolve();
       };
 
       this.currentUtterance = utterance;
-      this.synthesis.speak(utterance);
+
+      // Wrap speak() call in try-catch for extra safety
+      try {
+        this.synthesis.speak(utterance);
+      } catch (error) {
+        console.warn('Failed to start speech synthesis:', error);
+        resolve();
+      }
     });
   }
 
