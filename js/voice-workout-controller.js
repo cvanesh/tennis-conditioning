@@ -757,7 +757,7 @@ class VoiceWorkoutController {
   confirmStopWorkout() {
     // Pause the workout first
     if (this.isRunning) {
-      this.pauseWorkout();
+      this.pause();
     }
 
     // Show confirmation using app's showConfirm
