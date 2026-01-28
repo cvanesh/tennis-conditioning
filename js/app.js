@@ -1404,7 +1404,6 @@ const App = {
 
     card.innerHTML = `
       <div class="exercise-header" style="cursor: pointer;">
-        <div class="exercise-number">${index + 1}</div>
         <div class="exercise-checkbox ${isCompleted ? 'checked' : ''}" data-index="${index}">
         </div>
         <div class="exercise-info">
