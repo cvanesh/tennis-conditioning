@@ -609,6 +609,9 @@
           window.VoiceWorkout = new window.VoiceWorkoutController();
           window.VoiceWorkout.init();
         }
+
+        // Show app after authentication and initialization
+        document.getElementById('app').classList.add('ready');
       })();
     </script>
 </body>
