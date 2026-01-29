@@ -1310,17 +1310,17 @@ const App = {
       });
     }
 
-    // Auto-expand first incomplete exercise
-    const firstIncompleteIndex = this.state.exercises.findIndex((_, i) => !Storage.isExerciseCompleted(i));
-    if (firstIncompleteIndex !== -1) {
-      const firstIncompleteCard = document.querySelector(`[data-index="${firstIncompleteIndex}"]`);
-      if (firstIncompleteCard) {
-        const expandable = firstIncompleteCard.querySelector('.exercise-expandable');
-        if (expandable) {
-          expandable.classList.remove('hidden');
-        }
-      }
-    }
+    // Auto-expand first incomplete exercise - DISABLED to show full plan overview
+    // const firstIncompleteIndex = this.state.exercises.findIndex((_, i) => !Storage.isExerciseCompleted(i));
+    // if (firstIncompleteIndex !== -1) {
+    //   const firstIncompleteCard = document.querySelector(`[data-index="${firstIncompleteIndex}"]`);
+    //   if (firstIncompleteCard) {
+    //     const expandable = firstIncompleteCard.querySelector('.exercise-expandable');
+    //     if (expandable) {
+    //       expandable.classList.remove('hidden');
+    //     }
+    //   }
+    // }
 
     // Check if we should show the global duration toggle
     this.checkAndShowGlobalDurationToggle();
@@ -1846,19 +1846,19 @@ const App = {
         }
       }
 
-      // Find and expand next exercise (if not moving to next section)
-      const nextCard = document.querySelector(`[data-index="${index + 1}"]`);
-      if (nextCard) {
-        const nextExpandable = nextCard.querySelector('.exercise-expandable');
-        if (nextExpandable && nextExpandable.classList.contains('hidden')) {
-          nextExpandable.classList.remove('hidden');
+      // Find and expand next exercise (if not moving to next section) - DISABLED to maintain plan overview
+      // const nextCard = document.querySelector(`[data-index="${index + 1}"]`);
+      // if (nextCard) {
+      //   const nextExpandable = nextCard.querySelector('.exercise-expandable');
+      //   if (nextExpandable && nextExpandable.classList.contains('hidden')) {
+      //     nextExpandable.classList.remove('hidden');
 
-          // Scroll next exercise into view
-          setTimeout(() => {
-            nextCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }, 100);
-        }
-      }
+      //     // Scroll next exercise into view
+      //     setTimeout(() => {
+      //       nextCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      //     }, 100);
+      //   }
+      // }
     }
   },
 
@@ -1941,17 +1941,19 @@ const App = {
         nextExercisesContainer.classList.remove('hidden');
       }
 
-      // Find and expand first exercise in next section
-      const firstExerciseIndex = this.getSectionStartIndex(nextSectionIndex);
-      const firstExerciseCard = document.querySelector(`[data-index="${firstExerciseIndex}"]`);
+      // Find and expand first exercise in next section - DISABLED to maintain plan overview
+      // const firstExerciseIndex = this.getSectionStartIndex(nextSectionIndex);
+      // const firstExerciseCard = document.querySelector(`[data-index="${firstExerciseIndex}"]`);
 
-      if (firstExerciseCard) {
-        const expandable = firstExerciseCard.querySelector('.exercise-expandable');
-        if (expandable) {
-          expandable.classList.remove('hidden');
-        }
+      // if (firstExerciseCard) {
+      //   const expandable = firstExerciseCard.querySelector('.exercise-expandable');
+      //   if (expandable) {
+      //     expandable.classList.remove('hidden');
+      //   }
+      // }
 
-        // Scroll to next section
+      // Scroll to next section
+      if (nextSectionHeader) {
         setTimeout(() => {
           nextSectionHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
