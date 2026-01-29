@@ -1223,8 +1223,8 @@ const App = {
 
         // Create section header
         const sectionHeader = document.createElement('div');
-        // Only expand first section, collapse the rest
-        sectionHeader.className = sectionIdx === 0 ? 'section-header-card' : 'section-header-card collapsed';
+        // Start all sections collapsed to show full plan overview
+        sectionHeader.className = 'section-header-card collapsed';
         sectionHeader.dataset.sectionIndex = sectionIdx;
 
         let sectionMeta = `${section.timeRange} (${section.duration} min)`;
@@ -1287,9 +1287,9 @@ const App = {
 
         sectionContainer.appendChild(sectionHeader);
 
-        // Create exercises container (visible only for first section)
+        // Create exercises container (start all sections collapsed)
         const exercisesContainer = document.createElement('div');
-        exercisesContainer.className = sectionIdx === 0 ? 'section-exercises' : 'section-exercises hidden';
+        exercisesContainer.className = 'section-exercises hidden';
 
         // Add exercises in this section
         section.exercises.forEach(() => {

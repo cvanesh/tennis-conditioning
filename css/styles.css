@@ -1087,7 +1087,7 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(0, 0, 0, 0.06);
   transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   position: relative;
   overflow: hidden;
 }
@@ -1096,7 +1096,7 @@ body {
 @media (max-width: 767px) {
   .exercise-card {
     padding: 18px;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     border-radius: 14px;
   }
 }
@@ -1157,7 +1157,7 @@ body {
 
   .exercise-card {
     padding: 20px;
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     border-radius: 14px;
   }
 
@@ -2717,10 +2717,10 @@ button.config-btn.active {
 }
 
 .duration-preference-toggle .toggle-switch {
-  width: 60px;
-  height: 28px;
+  width: 80px;
+  height: 32px;
   background: var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   position: relative;
   transition: background 0.3s ease;
   flex-shrink: 0;
@@ -2733,17 +2733,17 @@ button.config-btn.active {
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 14px;
+  border-radius: 16px;
   transition: background 0.3s ease;
 }
 
 .duration-preference-toggle .toggle-slider:before {
   content: '';
   position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 22px;
-  height: 22px;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
   background: white;
   border-radius: 50%;
   transition: transform 0.3s ease;
@@ -2759,7 +2759,7 @@ button.config-btn.active {
 }
 
 .duration-preference-toggle input:checked + .toggle-slider:before {
-  transform: translateX(32px);
+  transform: translateX(48px);
 }
 
 /* Theme Options */
