@@ -8,8 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const ENCRYPTED_FILE = path.join(__dirname, 'js', 'data-encrypted.js');
-const OUTPUT_FILE = path.join(__dirname, 'js', 'data.js');
+const ENCRYPTED_FILE = path.join(__dirname, '..', 'js', 'data-encrypted.js');
+const OUTPUT_FILE = path.join(__dirname, '..', 'js', 'data.js');
 
 function askPassword() {
   return new Promise((resolve) => {

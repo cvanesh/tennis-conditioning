@@ -28,9 +28,9 @@ const colors = {
 const colorize = (text, color) => `${colors[color]}${text}${colors.reset}`;
 
 // Read files
-const mdFile1 = fs.readFileSync(path.join(__dirname, 'tennis_conditioning_plan.md'), 'utf8');
-const mdFile2 = fs.readFileSync(path.join(__dirname, 'tennis_conditioning_plan_with_videos.md'), 'utf8');
-const dataJsContent = fs.readFileSync(path.join(__dirname, 'js/data.js'), 'utf8');
+const mdFile1 = fs.readFileSync(path.join(__dirname, '..', 'docs', 'reference', 'tennis_conditioning_plan.md'), 'utf8');
+const mdFile2 = fs.readFileSync(path.join(__dirname, '..', 'docs', 'reference', 'tennis_conditioning_plan_with_videos.md'), 'utf8');
+const dataJsContent = fs.readFileSync(path.join(__dirname, '..', 'js', 'data.js'), 'utf8');
 
 // Parse data.js to extract the data structure
 let EIGHT_WEEK_PROGRAM = null;
