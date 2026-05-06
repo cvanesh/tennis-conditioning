@@ -127,39 +127,16 @@ build/
 .cache/
 .parcel-cache/
 
-# Project-specific temporary files
-validation-report.txt
-validation-detailed.txt
-generation-report.txt
-missing-exercises-code.txt
-all-missing-exercises.txt
-missing-exercise-ids.txt
-*SUMMARY.md
-PROFESSIONAL_STANDARDS.md
-FIXES_SUMMARY.md
-COMPLETION_SUMMARY.md
-IMPROVEMENTS_SUMMARY.md
-VALIDATION_SUMMARY.md
-WEEKS_3-4_SUMMARY.md
+# dev-tools/: ignore everything (local scratch, backups, generated reports,
+# screenshots, *SUMMARY.md notes), then un-ignore the dev scripts we track.
+dev-tools/*
+!dev-tools/decrypt-data.js
+!dev-tools/encrypt-data.html
+!dev-tools/generate-icons.html
+!dev-tools/validate-data.js
 
-# Development tools and backups
-dev-tools/
-
-# Unencrypted sensitive data (use data-encrypted.js instead)
+# Unencrypted workout data (use js/data-encrypted.js instead)
 js/data.js
 
-# Encryption tools (not needed in repo)
-encrypt-data.js
-encrypt-data-fixed.js
-test-encryption.js
-encrypt-data.html
-generate-icons.html
-generate-icons-node.js
-voice-test.html
-debug-hamstring.html
-
-# Code validation script (development only)
-validate-code.js
-
-# Snapshots and screenshots for development/testing
+# UI screenshots used during development
 snapshots/

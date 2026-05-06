@@ -188,11 +188,33 @@ const App = {
     // Settings button
     this.elements.settingsBtn.addEventListener('click', () => this.openSettings());
 
-    // Plan cards
-    document.querySelectorAll('.plan-card').forEach(card => {
+    // Plan cards (incl. hero card with same data-plan attribute)
+    document.querySelectorAll('.plan-card, .plan-hero').forEach(card => {
       card.addEventListener('click', (e) => {
         const plan = e.currentTarget.dataset.plan;
         this.handlePlanSelect(plan);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const plan = e.currentTarget.dataset.plan;
+          this.handlePlanSelect(plan);
+        }
+      });
+    });
+
+    // Side rail
+    document.querySelectorAll('.rail-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        const target = e.currentTarget.dataset.rail;
+        this.setActiveRail(target);
+        if (target === 'home') {
+          this.goHome();
+        } else if (target === 'settings') {
+          this.openSettings();
+        } else {
+          this.handlePlanSelect(target);
+        }
       });
     });
 
@@ -468,6 +490,16 @@ const App = {
   goHome() {
     this.showView('planLibrary');
     this.updateBreadcrumb(); // Reset breadcrumb on home
+    this.setActiveRail('home');
+  },
+
+  setActiveRail(target) {
+    document.querySelectorAll('.rail-item').forEach(item => {
+      const isActive = item.dataset.rail === target;
+      item.classList.toggle('active', isActive);
+      if (isActive) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
+    });
   },
 
   updateBreadcrumb(plan = null, week = null, day = null) {
@@ -590,6 +622,7 @@ const App = {
 
   handlePlanSelect(plan) {
     this.state.currentPlan = plan;
+    this.setActiveRail(plan);
 
     switch (plan) {
       case '8-week':
@@ -788,6 +821,7 @@ const App = {
           </svg>
         </div>
         ${section.subtitle ? `<p class="section-meta">${section.subtitle}</p>` : ''}
+        <div class="section-progress-track" aria-hidden="true"><span class="section-progress-fill"></span></div>
       `;
 
       // Toggle handler
@@ -918,6 +952,9 @@ const App = {
       if (progressSpan) {
         progressSpan.textContent = `${completedItems}/${totalItems}`;
       }
+      const pct = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+      header.style.setProperty('--progress', pct);
+      header.classList.toggle('section-complete', pct === 100);
     });
   },
 
@@ -1252,6 +1289,7 @@ const App = {
             </svg>
           </div>
           <p class="section-meta">${sectionMeta}</p>
+          <div class="section-progress-track" aria-hidden="true"><span class="section-progress-fill"></span></div>
         `;
 
         // Store exercise indices for progress tracking
@@ -2750,6 +2788,10 @@ const App = {
 
       progressEl.textContent = `${completed}/${total}`;
 
+      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+      header.style.setProperty('--progress', pct);
+      header.classList.toggle('section-complete', pct === 100);
+
       if (completed === total && total > 0) {
         progressEl.classList.add('complete');
       } else {
@@ -2763,32 +2805,22 @@ const App = {
   // ===================================
 
   initTheme() {
-    const themes = ['australian-open', 'french-open', 'wimbledon', 'us-open'];
-
-    // Check if theme is saved
-    let savedTheme = localStorage.getItem('tennis-theme');
-
-    // If no saved theme, pick random
-    if (!savedTheme) {
-      savedTheme = themes[Math.floor(Math.random() * themes.length)];
-      localStorage.setItem('tennis-theme', savedTheme);
-    }
-
-    this.setTheme(savedTheme);
+    const savedTheme = localStorage.getItem('tennis-theme') || 'wimbledon';
+    this.setTheme(savedTheme, { silent: true });
   },
 
-  setTheme(themeName) {
+  setTheme(themeName, options = {}) {
     document.body.setAttribute('data-theme', themeName);
     localStorage.setItem('tennis-theme', themeName);
 
-    // Show toast with theme name
-    const themeNames = {
-      'australian-open': '🇦🇺 Australian Open',
-      'french-open': '🇫🇷 French Open',
-      'wimbledon': '🇬🇧 Wimbledon',
-      'us-open': '🇺🇸 US Open'
-    };
+    if (options.silent) return;
 
+    const themeNames = {
+      'australian-open': 'Australian Open',
+      'french-open': 'French Open',
+      'wimbledon': 'Wimbledon',
+      'us-open': 'US Open'
+    };
     this.showToast(themeNames[themeName] || themeName);
   },
 

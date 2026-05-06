@@ -42,29 +42,70 @@
   --score-silver: #C0C0C0;
   --score-bronze: #CD7F32;
 
-  /* Spacing */
+  /* Spacing — legacy tokens preserved (unchanged values) */
   --spacing-xs: 2px;
   --spacing-sm: 4px;
   --spacing-md: 8px;
   --spacing-lg: 12px;
   --spacing-xl: 16px;
 
-  /* Border Radius */
+  /* Spacing — modern scale (4 / 8 / 12 / 16 / 24 / 32 / 48 / 64) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Border Radius — legacy preserved + modern scale */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+  --radius-card: 16px;
+  --radius-card-lg: 20px;
+  --radius-pill: 9999px;
 
-  /* Shadows */
+  /* Shadows — legacy preserved + layered modern stack */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+  --shadow-soft-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --shadow-soft-2: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-soft-3: 0 2px 4px rgba(15, 23, 42, 0.05), 0 16px 40px rgba(15, 23, 42, 0.08);
+  --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--primary-color) 30%, transparent);
 
   /* Typography */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   --font-weight-bold: 700;
+
+  /* Type scale (modular, ~1.18) */
+  --text-meta: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;      /* 14px */
+  --text-body: 1rem;        /* 16px */
+  --text-lg: 1.125rem;      /* 18px */
+  --text-h3: 1.25rem;       /* 20px */
+  --text-h2: 1.5rem;        /* 24px */
+  --text-h1: 2rem;          /* 32px */
+  --text-display: 2.5rem;   /* 40px */
+
+  /* Letter spacing */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
 
   /* Header Height */
   --header-height: 56px;
@@ -3423,4 +3464,702 @@ button.config-btn.active {
     width: 20px;
     height: 20px;
   }
+}
+
+/* =====================================================================
+   PASS 1 — VISUAL RESET (tokens, type scale, icons, header, plan cards)
+   Overrides specific high-impact components. Reversible if removed.
+   ===================================================================== */
+
+/* Body uses Inter at refined defaults */
+body {
+  font-feature-settings: "cv11", "ss01", "ss03";
+  letter-spacing: var(--tracking-tight);
+}
+
+/* App padding — give content breathing room on desktop */
+#app {
+  padding: var(--space-3);
+}
+@media (min-width: 768px) {
+  #app { padding: var(--space-4); }
+}
+@media (min-width: 1024px) {
+  #app {
+    max-width: 1120px;
+    padding: var(--space-5) var(--space-5) var(--space-6);
+  }
+}
+
+/* Header — flatter, bonded to surface (no gradient banner feel) */
+#header {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft-1);
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-4);
+}
+#headerTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+#header .icon-btn {
+  color: var(--text-secondary);
+}
+#header .icon-btn:hover {
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  color: var(--primary-color);
+  transform: none;
+}
+#header .icon-btn:active {
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  transform: none;
+}
+.app-logo {
+  font-size: 1.25rem;
+  animation: none;
+}
+
+/* Main content padding & rhythm */
+#mainContent {
+  padding: 0;
+  background: transparent;
+  max-width: 880px;
+}
+
+/* Welcome / hero section */
+.welcome-section {
+  padding: var(--space-6) var(--space-3) var(--space-5);
+  margin-bottom: var(--space-5);
+  text-align: left;
+}
+.welcome-section h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  line-height: 1.1;
+}
+.welcome-section p {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+.tennis-ball-icon { display: none; } /* replaced by inline SVG hero mark in HTML */
+
+/* Section header (reused across views) */
+.section-header { margin-bottom: var(--space-5); }
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+.section-header p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* Plan grid — looser, more readable on desktop */
+.plans-grid {
+  gap: var(--space-3);
+}
+@media (min-width: 768px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+/* Plan cards — taller, softer, real card feel */
+.plan-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft-1);
+  gap: var(--space-4);
+  align-items: center;
+  min-height: 88px;
+  transition: transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out),
+              border-color var(--duration-base) var(--ease-out);
+}
+.plan-card::before { display: none; }
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft-2);
+  border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border));
+}
+.plan-card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus), var(--shadow-soft-2);
+  border-color: var(--primary-color);
+}
+
+/* Featured (8-week) — accent border + tinted surface, not solid fill */
+.plan-card.featured {
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--primary-color) 6%, var(--surface)) 0%,
+      var(--surface) 60%);
+  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 45%, var(--border));
+  box-shadow: var(--shadow-soft-2);
+}
+.plan-card.featured h3 { color: var(--text-primary); }
+.plan-card.featured .plan-meta { color: var(--text-secondary); }
+.plan-card.featured .plan-icon-wrap {
+  background: color-mix(in srgb, var(--primary-color) 14%, var(--surface));
+  color: var(--primary-color);
+}
+
+/* Custom — quieter dashed accent */
+.plan-card.custom {
+  background: var(--surface);
+  border: 1px dashed color-mix(in srgb, var(--accent-color) 60%, var(--border));
+}
+.plan-card.custom::before { display: none; }
+.plan-card.custom .plan-icon-wrap {
+  background: color-mix(in srgb, var(--accent-color) 18%, var(--surface));
+  color: var(--accent-dark);
+}
+
+/* Plan-icon now wraps a real SVG; rounded surface tile, brand-tinted */
+.plan-icon {
+  font-size: 0;
+  width: 44px;
+  height: 44px;
+}
+.plan-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--primary-color) 10%, var(--surface));
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+.plan-icon-wrap svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.75;
+}
+
+/* Plan card text */
+.plan-card h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: 2px;
+  line-height: 1.25;
+}
+.plan-card p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  opacity: 1;
+  line-height: 1.4;
+}
+.plan-meta {
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-medium);
+  margin-top: 4px;
+}
+
+/* Toast — neutral dark chip rather than themed pill, smaller, no scream */
+.toast {
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-tight);
+  border-radius: var(--radius-pill);
+  padding: 10px 16px;
+  box-shadow: var(--shadow-soft-3);
+}
+
+/* Focus rings on all interactive elements */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-md);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .app-logo { animation: none; }
+  .plan-card { transition: none; }
+  .plan-card:hover { transform: none; }
+}
+
+/* =====================================================================
+   PASS 2 — LAYOUT (side rail, content max-width, hero & card variants)
+   ===================================================================== */
+
+/* Side rail — hidden on mobile/tablet, shown on ≥1024 */
+#sideRail { display: none; }
+
+@media (min-width: 1024px) {
+  /* Two-column app shell: rail + main, header spans full width */
+  #app {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-areas:
+      "header header"
+      "rail   main";
+    column-gap: var(--space-5);
+    max-width: 1280px;
+    align-items: start;
+  }
+  #header { grid-area: header; }
+  #sideRail {
+    grid-area: rail;
+    display: block;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-5));
+  }
+  #mainContent { grid-area: main; max-width: 880px; }
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft-1);
+}
+.rail-item {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-tight);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+  font-family: inherit;
+}
+.rail-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.rail-item:hover {
+  background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  color: var(--text-primary);
+}
+.rail-item.active {
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--primary-color);
+}
+.rail-item--bottom { margin-top: var(--space-2); }
+
+/* Hero card — full-width feature on home */
+.plan-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+  background:
+    radial-gradient(120% 100% at 0% 0%,
+      color-mix(in srgb, var(--primary-color) 12%, var(--surface)) 0%,
+      var(--surface) 60%);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 40%, var(--border));
+  border-radius: var(--radius-card-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-soft-2);
+  margin-bottom: var(--space-6);
+  cursor: pointer;
+  transition: transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out),
+              border-color var(--duration-base) var(--ease-out);
+}
+.plan-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft-3);
+  border-color: color-mix(in srgb, var(--primary-color) 65%, var(--border));
+}
+.plan-hero:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus), var(--shadow-soft-3);
+}
+@media (min-width: 768px) {
+  .plan-hero {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: var(--space-6);
+  }
+}
+.plan-hero-content { display: flex; flex-direction: column; gap: var(--space-2); }
+.plan-hero-eyebrow {
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+}
+.plan-hero h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin: 0;
+}
+.plan-hero p {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  max-width: 52ch;
+  margin: 0;
+}
+.plan-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+  letter-spacing: var(--tracking-tight);
+}
+.plan-hero-cta svg {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.plan-hero:hover .plan-hero-cta svg { transform: translateX(3px); }
+
+.plan-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(72px, 1fr));
+  gap: var(--space-3);
+  align-self: stretch;
+  margin: 0;
+}
+.plan-hero-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--primary-color) 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border));
+  border-radius: var(--radius-md);
+}
+.plan-hero-stats dt {
+  font-size: var(--text-meta);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+.plan-hero-stats dd {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+  margin: 0;
+}
+
+/* Section grouping on home */
+.home-section { margin-bottom: var(--space-6); }
+.home-section-title {
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+/* 3-column grid on desktop, 2 on tablet, 1 on mobile */
+.plans-grid--3col {
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+@media (min-width: 640px) {
+  .plans-grid--3col { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+}
+@media (min-width: 1024px) {
+  .plans-grid--3col { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Reference card variant — quieter, smaller, less prominent */
+.plan-card.reference {
+  background: transparent;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  min-height: 76px;
+}
+.plan-card.reference:hover {
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--primary-color) 25%, var(--border));
+  box-shadow: var(--shadow-soft-1);
+}
+.plan-card.reference .plan-icon-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.plan-card.reference:hover .plan-icon-wrap {
+  color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border));
+}
+.plan-card.reference h3 {
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+}
+.plan-card.reference p {
+  font-size: var(--text-sm);
+}
+.plan-card.reference.custom { border-style: dashed; }
+
+/* Workout view — hero treatment for the timer cluster */
+.workout-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft-1);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.workout-header h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+}
+.workout-header .workout-meta {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.workout-header .timer-display {
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 25%, var(--border));
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+}
+.workout-header .timer-display .timer-icon { color: var(--primary-color); }
+.workout-header #workoutTimer {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+/* Distinguish primary play/pause from secondary controls */
+.workout-header .timer-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  box-shadow: none;
+}
+.workout-header .timer-btn:hover {
+  color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--surface));
+}
+.workout-header #playPauseBtn,
+.workout-header .timer-btn.playing {
+  background: var(--primary-color);
+  color: var(--text-inverse);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--primary-color) 30%, transparent);
+}
+.workout-header #playPauseBtn:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: var(--text-inverse);
+}
+
+/* Section header card (warmup view) — match the new card system, override gradient */
+.section-header-card {
+  background: var(--surface) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--shadow-soft-1) !important;
+}
+.section-header-card h3 {
+  color: var(--text-primary) !important;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+.section-header-card .section-meta { color: var(--text-secondary) !important; }
+
+@media (min-width: 768px) {
+  .welcome-section { padding: var(--space-6) 0 var(--space-4); }
+}
+
+/* =====================================================================
+   PASS 3 — POLISH (motion, dark mode, density: section progress bar)
+   ===================================================================== */
+
+/* --- Section progress bar (warmup/workout views) --- */
+.section-header-card {
+  position: relative;
+  overflow: hidden;
+  --progress: 0;
+}
+.section-progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  pointer-events: none;
+}
+.section-progress-fill {
+  display: block;
+  height: 100%;
+  width: calc(var(--progress) * 1%);
+  background: linear-gradient(90deg,
+    var(--primary-color) 0%,
+    color-mix(in srgb, var(--primary-color) 70%, var(--accent-color)) 100%);
+  border-radius: 0 2px 2px 0;
+  transition: width var(--duration-slow) var(--ease-out);
+}
+.section-header-card.section-complete {
+  border-color: color-mix(in srgb, var(--primary-color) 50%, var(--border)) !important;
+}
+.section-header-card.section-complete .section-progress {
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+}
+.section-header-card.section-complete .section-progress-fill {
+  background: var(--primary-color);
+}
+.section-header-card .section-progress {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-meta);
+  letter-spacing: var(--tracking-wide);
+}
+
+/* --- Motion language polish --- */
+.plan-card,
+.plan-hero,
+.section-header-card,
+.rail-item,
+.icon-btn {
+  transition-property: transform, box-shadow, border-color, background, color;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+}
+.plan-card:active { transform: scale(0.985); }
+.plan-hero:active { transform: scale(0.992); }
+.rail-item:active { transform: translateX(1px); }
+
+.view {
+  animation: viewIn var(--duration-slow) var(--ease-out);
+}
+@keyframes viewIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Dark mode --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0B0F0E;
+    --surface: #141A18;
+    --surface-elevated: #1B221F;
+    --text-primary: #ECEFEC;
+    --text-secondary: #9AA39E;
+    --text-disabled: #5C6661;
+    --text-inverse: #0B0F0E;
+    --border: #232A27;
+    --divider: #1B221F;
+    --shadow-soft-1: 0 1px 2px rgba(0,0,0,0.4), 0 1px 1px rgba(0,0,0,0.3);
+    --shadow-soft-2: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.45);
+    --shadow-soft-3: 0 2px 4px rgba(0,0,0,0.45), 0 16px 40px rgba(0,0,0,0.55);
+  }
+  body[data-theme="wimbledon"] {
+    --primary-color: #4CAF50;
+    --primary-light: #66BB6A;
+    --primary-dark: #2E7D32;
+    --tennis-green: #4CAF50;
+    --tennis-green-light: #66BB6A;
+    --tennis-green-dark: #2E7D32;
+    --background: #0B0F0E;
+    --tennis-lime: #1F2D22;
+  }
+  body[data-theme="australian-open"] {
+    --primary-color: #33ADDB;
+    --primary-light: #5EC0E5;
+    --primary-dark: #0099CC;
+    --tennis-green: #33ADDB;
+    --tennis-green-light: #5EC0E5;
+    --tennis-green-dark: #0099CC;
+    --background: #0B0F11;
+  }
+  body[data-theme="french-open"] {
+    --primary-color: #E5663A;
+    --primary-light: #F08158;
+    --primary-dark: #C1440E;
+    --tennis-green: #E5663A;
+    --tennis-green-light: #F08158;
+    --tennis-green-dark: #C1440E;
+    --background: #100B09;
+  }
+  body[data-theme="us-open"] {
+    --primary-color: #6FA8FF;
+    --primary-light: #9CC2FF;
+    --primary-dark: #1565C0;
+    --tennis-green: #6FA8FF;
+    --tennis-green-light: #9CC2FF;
+    --tennis-green-dark: #1565C0;
+    --background: #0A0E14;
+  }
+
+  .plan-card.featured {
+    background:
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--primary-color) 14%, var(--surface)) 0%,
+        var(--surface) 60%);
+  }
+  .plan-hero {
+    background: radial-gradient(120% 100% at 0% 0%,
+      color-mix(in srgb, var(--primary-color) 18%, var(--surface)) 0%,
+      var(--surface) 60%);
+  }
+  .plan-card.custom { background: var(--surface); }
+  .plan-card.reference { background: transparent; }
+  .plan-card.reference:hover { background: var(--surface-elevated); }
+  .section-progress-track { background: color-mix(in srgb, var(--primary-color) 14%, transparent); }
+}
+
+/* --- Workout meta layout (slightly denser) --- */
+.workout-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.workout-meta > span {
+  display: inline-flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
 }

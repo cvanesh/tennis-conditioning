@@ -19,6 +19,9 @@
     <link rel="manifest" href="./manifest.json">
 
     <title>Tennis Conditioning Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
@@ -44,6 +47,40 @@
             </button>
         </header>
 
+        <!-- Desktop Side Rail -->
+        <aside id="sideRail" aria-label="Primary navigation">
+            <nav class="rail-nav">
+                <button class="rail-item" data-rail="home" aria-current="page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+                    <span>Home</span>
+                </button>
+                <button class="rail-item" data-rail="8-week">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>
+                    <span>8-Week</span>
+                </button>
+                <button class="rail-item" data-rail="warmup">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4s2 2 2 5c0 2-2 3-2 5 0 1 1 2 1 2"/><path d="M8 8s1 1 1 3-2 3-2 5c0 2 2 4 5 4s5-2 5-5c0-2-1-3-1-5 0-3-2-5-4-5"/></svg>
+                    <span>Warm-Up</span>
+                </button>
+                <button class="rail-item" data-rail="match-day">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v4a6 6 0 0 1-12 0z"/><path d="M6 4H4a2 2 0 0 0 0 4h2M18 4h2a2 2 0 0 1 0 4h-2"/><path d="M10 14h4M9 21h6M12 14v7"/></svg>
+                    <span>Match Day</span>
+                </button>
+                <button class="rail-item" data-rail="exercises">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h11v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>
+                    <span>Library</span>
+                </button>
+                <button class="rail-item" data-rail="nutrition">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-3-3-8-2-8 4 0 5 5 11 8 11s8-6 8-11c0-6-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-4"/></svg>
+                    <span>Nutrition</span>
+                </button>
+                <button class="rail-item rail-item--bottom" data-rail="settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Settings</span>
+                </button>
+            </nav>
+        </aside>
+
         <!-- Main Content Area -->
         <main id="mainContent">
             <!-- Breadcrumb Navigation -->
@@ -58,89 +95,98 @@
             <!-- Plan Library View (Default) -->
             <div id="planLibraryView" class="view active">
                 <div class="welcome-section">
-                    <div class="tennis-ball-icon">🎾</div>
-                    <h2>Ready to Train?</h2>
-                    <p>Choose a workout plan to get started</p>
+                    <h2>Ready to train?</h2>
+                    <p>Pick up where you left off, or jump into something new.</p>
                 </div>
 
-                <div class="plans-grid">
-                    <div class="plan-card featured" data-plan="8-week">
-                        <div class="plan-icon">💪</div>
-                        <div class="plan-card-content">
-                            <h3>8-Week Program</h3>
-                            <p>Complete conditioning journey</p>
-                            <div class="plan-meta">
-                                <span>8 weeks • 4 days/week</span>
-                            </div>
-                        </div>
+                <!-- Hero featured card -->
+                <article class="plan-hero" data-plan="8-week" tabindex="0" role="button" aria-label="8-Week Program">
+                    <div class="plan-hero-content">
+                        <span class="plan-hero-eyebrow">Featured · Conditioning</span>
+                        <h3>8-Week Program</h3>
+                        <p>A complete conditioning journey — base, build, peak. Tracks every session and adapts to your week.</p>
+                        <span class="plan-hero-cta">
+                            Continue training
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                        </span>
                     </div>
+                    <dl class="plan-hero-stats" aria-label="Program stats">
+                        <div><dt>Weeks</dt><dd>8</dd></div>
+                        <div><dt>Days/wk</dt><dd>4</dd></div>
+                        <div><dt>Sessions</dt><dd>32</dd></div>
+                    </dl>
+                </article>
 
-                    <div class="plan-card" data-plan="match-day">
-                        <div class="plan-icon">🎾</div>
-                        <div class="plan-card-content">
-                            <h3>Match Day Protocol</h3>
-                            <p>Complete tournament day checklist</p>
-                            <div class="plan-meta">
-                                <span>6 Protocols • Pre-match to recovery</span>
+                <!-- Quick actions -->
+                <section class="home-section">
+                    <h3 class="home-section-title">Quick actions</h3>
+                    <div class="plans-grid plans-grid--3col">
+                        <div class="plan-card" data-plan="warmup" tabindex="0" role="button" aria-label="Warm-Up Protocol">
+                            <span class="plan-icon"><span class="plan-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4s2 2 2 5c0 2-2 3-2 5 0 1 1 2 1 2"/><path d="M8 8s1 1 1 3-2 3-2 5c0 2 2 4 5 4s5-2 5-5c0-2-1-3-1-5 0-3-2-5-4-5"/></svg>
+                            </span></span>
+                            <div class="plan-card-content">
+                                <h3>Warm-Up Protocol</h3>
+                                <p>15-min prep with band &amp; jump rope</p>
+                                <div class="plan-meta"><span>15 min</span></div>
+                            </div>
+                        </div>
+                        <div class="plan-card" data-plan="cooldown" tabindex="0" role="button" aria-label="Cool-Down Protocol">
+                            <span class="plan-icon"><span class="plan-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19"/></svg>
+                            </span></span>
+                            <div class="plan-card-content">
+                                <h3>Cool-Down Protocol</h3>
+                                <p>10-min recovery, wrist &amp; shoulder care</p>
+                                <div class="plan-meta"><span>10 min</span></div>
+                            </div>
+                        </div>
+                        <div class="plan-card" data-plan="match-day" tabindex="0" role="button" aria-label="Match Day Protocol">
+                            <span class="plan-icon"><span class="plan-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v4a6 6 0 0 1-12 0z"/><path d="M6 4H4a2 2 0 0 0 0 4h2M18 4h2a2 2 0 0 1 0 4h-2"/><path d="M10 14h4M9 21h6M12 14v7"/></svg>
+                            </span></span>
+                            <div class="plan-card-content">
+                                <h3>Match Day Protocol</h3>
+                                <p>Tournament day checklist, pre to post</p>
+                                <div class="plan-meta"><span>6 Protocols</span></div>
                             </div>
                         </div>
                     </div>
+                </section>
 
-                    <div class="plan-card" data-plan="warmup">
-                        <div class="plan-icon">🔥</div>
-                        <div class="plan-card-content">
-                            <h3>Warm-Up Protocol</h3>
-                            <p>15 minute preparation with band & jump rope</p>
-                            <div class="plan-meta">
-                                <span>15 min</span>
+                <!-- Reference -->
+                <section class="home-section">
+                    <h3 class="home-section-title">Reference</h3>
+                    <div class="plans-grid plans-grid--3col plans-grid--reference">
+                        <div class="plan-card reference" data-plan="exercises" tabindex="0" role="button" aria-label="Exercise Library">
+                            <span class="plan-icon"><span class="plan-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h11v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>
+                            </span></span>
+                            <div class="plan-card-content">
+                                <h3>Exercise Library</h3>
+                                <p>Browse all 150+ exercises</p>
+                            </div>
+                        </div>
+                        <div class="plan-card reference" data-plan="nutrition" tabindex="0" role="button" aria-label="Nutrition Guide">
+                            <span class="plan-icon"><span class="plan-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-3-3-8-2-8 4 0 5 5 11 8 11s8-6 8-11c0-6-5-7-8-4z"/><path d="M12 7c0-2 1-4 3-4"/></svg>
+                            </span></span>
+                            <div class="plan-card-content">
+                                <h3>Nutrition Guide</h3>
+                                <p>Meal plans &amp; fueling guidelines</p>
+                            </div>
+                        </div>
+                        <div class="plan-card reference custom" data-plan="custom" tabindex="0" role="button" aria-label="Custom Workout">
+                            <span class="plan-icon"><span class="plan-icon-wrap" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            </span></span>
+                            <div class="plan-card-content">
+                                <h3>Custom Workout</h3>
+                                <p>Build your own session</p>
                             </div>
                         </div>
                     </div>
-
-                    <div class="plan-card" data-plan="cooldown">
-                        <div class="plan-icon">❄️</div>
-                        <div class="plan-card-content">
-                            <h3>Cool-Down Protocol</h3>
-                            <p>10 minute recovery with wrist & shoulder care</p>
-                            <div class="plan-meta">
-                                <span>10 min</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="plan-card" data-plan="nutrition">
-                        <div class="plan-icon">🍎</div>
-                        <div class="plan-card-content">
-                            <h3>Nutrition Guide</h3>
-                            <p>Complete meal plans & nutrition guidelines</p>
-                            <div class="plan-meta">
-                                <span>10 Categories • 50+ Meals</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="plan-card" data-plan="exercises">
-                        <div class="plan-icon">📚</div>
-                        <div class="plan-card-content">
-                            <h3>Exercise Library</h3>
-                            <p>Browse all 150+ exercises</p>
-                            <div class="plan-meta">
-                                <span>Reference</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="plan-card custom" data-plan="custom">
-                        <div class="plan-icon">✨</div>
-                        <div class="plan-card-content">
-                            <h3>Custom Workout</h3>
-                            <p>Create your own plan</p>
-                            <div class="plan-meta">
-                                <span>Build</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </section>
             </div>
 
             <!-- Week Selector View -->
